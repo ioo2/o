@@ -1,0 +1,39 @@
+{
+  "plugins": [  
+  {
+      "name": "QQ",
+      "url": "http://music.haitangw.net/cqapi/qq.js",
+      "version": "0.1.0"
+       },
+ {
+      "name": "酷我",
+      "url": "http://music.haitangw.net/cqapi/kw.js",
+      "version": "0.1.0"
+    }, 
+   {
+      "name": "网易",
+      "url": "http://music.haitangw.net/cqapi/wy.js",
+      "version": "0.1"
+    },
+    {
+      "name": "酷狗",
+      "url": "http://music.haitangw.net/cqapi/kg.js",
+      "version": "0.1.0"
+    },
+ {
+      "name": "咪咕",
+      "url": "http://music.haitangw.net/cqapi/xiaomi.js",
+      "version": "0.1.0"
+    },
+ {
+      "name": "猫耳FM",
+      "url": "https://gitee.com/maotoumao/MusicFreePlugins/raw/v0.1/dist/maoerfm/index.js",
+      "version": "0.1.4"
+    },
+ {
+      "name": "b站",
+      "url": "https://gitee.com/maotoumao/MusicFreePlugins/raw/v0.1/dist/bilibili/index.js",
+     "version": "0.2.3"
+       }
+  ]
+}
