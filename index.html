@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>恒轩影视</title>
+    
+    <!-- 🔥 永久生效的 🎬 图标配置（核心修复） -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/72x72/1f3ac.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/32x32/1f3ac.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/180x180/1f3ac.png">
+    <link rel="manifest" href="data:application/manifest+json,{
+      \"name\":\"恒轩影视\",
+      \"short_name\":\"恒轩\",
+      \"icons\":[
+        {\"src\":\"https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/192x192/1f3ac.png\",\"sizes\":\"192x192\",\"type\":\"image/png\"}
+      ],
+      \"start_url\":\"/\",
+      \"display\":\"standalone\"
+    }">
+    
     <!-- 外部资源 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -138,28 +153,6 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
     </style>
-    <script>
-        // 核心：TVBox 识别逻辑（页面加载前执行）
-        (function() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            // 匹配所有 TVBox/Fengmi/Mifeng 类软件
-            const isTVBox = /tvbox|okhttp|box|android|fengmi|mifeng/i.test(userAgent);
-            
-            if (isTVBox) {
-                // TVBox 访问时，直接输出 JSON 配置，终止网页渲染
-                const config = {
-                    "version": 1,
-                    "urls": ["https://hxys.ddns.net/o.png"]
-                };
-                document.open();
-                document.write(JSON.stringify(config));
-                document.close();
-                // 设置响应头为 JSON，确保 TVBox 识别
-                document.contentType = "application/json";
-                return; // 终止后续代码执行
-            }
-        })();
-    </script>
 </head>
 <body class="min-h-screen">
     <!-- 粒子背景 -->
@@ -336,122 +329,119 @@
     </button>
 
     <script>
-        // 避免 TVBox 执行后续 JS
-        if (window.navigator.userAgent.toLowerCase().indexOf('tvbox') === -1) {
-            // 创建粒子背景
-            function createParticles() {
-                const container = document.getElementById('particles-container');
-                const particleCount = 20;
+        // 创建粒子背景
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
                 
-                for (let i = 0; i < particleCount; i++) {
-                    const particle = document.createElement('div');
-                    particle.classList.add('particle');
+                // 随机大小和位置
+                const size = Math.random() * 100 + 50;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // 复制功能
+        function initCopyBtn(btnId, urlId, notifyId) {
+            document.getElementById(btnId).addEventListener('click', function() {
+                const urlInput = document.getElementById(urlId);
+                urlInput.select();
+                navigator.clipboard.writeText(urlInput.value).then(() => {
+                    const btn = document.getElementById(btnId);
+                    const notify = document.getElementById(notifyId);
                     
-                    // 随机大小和位置
-                    const size = Math.random() * 100 + 50;
-                    particle.style.width = `${size}px`;
-                    particle.style.height = `${size}px`;
-                    particle.style.left = `${Math.random() * 100}%`;
-                    particle.style.top = `${Math.random() * 100}%`;
-                    particle.style.animationDelay = `${Math.random() * 10}s`;
-                    particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                    // 保存原始内容
+                    const originalHTML = btn.innerHTML;
                     
-                    container.appendChild(particle);
-                }
-            }
-            
-            // 复制功能
-            function initCopyBtn(btnId, urlId, notifyId) {
-                document.getElementById(btnId).addEventListener('click', function() {
-                    const urlInput = document.getElementById(urlId);
-                    urlInput.select();
-                    navigator.clipboard.writeText(urlInput.value).then(() => {
-                        const btn = document.getElementById(btnId);
-                        const notify = document.getElementById(notifyId);
-                        
-                        // 保存原始内容
-                        const originalHTML = btn.innerHTML;
-                        
-                        // 显示复制成功状态
-                        btn.innerHTML = '<i class="fa fa-check mr-1"></i>已复制';
-                        btn.classList.add('bg-green-500/20', 'text-green-400');
-                        btn.classList.remove('hover:bg-primary/30', 'hover:bg-secondary/30');
-                        notify.classList.remove('hidden');
-                        
-                        // 恢复原始状态
-                        setTimeout(() => {
-                            btn.innerHTML = originalHTML;
-                            btn.classList.remove('bg-green-500/20', 'text-green-400');
-                            btn.classList.add(btnId.includes('2') ? 'hover:bg-secondary/30' : 'hover:bg-primary/30');
-                            notify.classList.add('hidden');
-                        }, 2000);
-                    });
-                });
-            }
-            
-            // 导航栏滚动效果
-            function handleNavbarScroll() {
-                const navbar = document.querySelector('.navbar');
-                if (window.scrollY > 50) {
-                    navbar.classList.add('py-2', 'shadow-lg', 'shadow-dark/50');
-                    navbar.classList.remove('py-4');
-                } else {
-                    navbar.classList.add('py-4');
-                    navbar.classList.remove('py-2', 'shadow-lg', 'shadow-dark/50');
-                }
-            }
-            
-            // 初始化
-            document.addEventListener('DOMContentLoaded', () => {
-                // 创建粒子背景
-                createParticles();
-                
-                // 初始化复制按钮
-                initCopyBtn('copy-btn-1', 'config-url-1', 'copy-notification-1');
-                initCopyBtn('copy-btn-2', 'config-url-2', 'copy-notification-2');
-                initCopyBtn('copy-btn-3', 'config-url-3', 'copy-notification-3');
-                
-                // 导航栏滚动效果
-                window.addEventListener('scroll', handleNavbarScroll);
-                handleNavbarScroll(); // 初始检查
-                
-                // 返回顶部按钮
-                const backBtn = document.getElementById('back-to-top');
-                
-                window.addEventListener('scroll', () => {
-                    if (window.pageYOffset > 300) {
-                        backBtn.classList.remove('opacity-0', 'invisible');
-                        backBtn.classList.add('opacity-100', 'visible');
-                    } else {
-                        backBtn.classList.add('opacity-0', 'invisible');
-                        backBtn.classList.remove('opacity-100', 'visible');
-                    }
-                });
-                
-                backBtn.addEventListener('click', () => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-                
-                // 平滑滚动
-                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                    anchor.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const targetId = this.getAttribute('href');
-                        const targetElement = document.querySelector(targetId);
-                        
-                        if (targetElement) {
-                            const navbarHeight = document.querySelector('.navbar').offsetHeight;
-                            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
-                            
-                            window.scrollTo({
-                                top: targetPosition,
-                                behavior: 'smooth'
-                            });
-                        }
-                    });
+                    // 显示复制成功状态
+                    btn.innerHTML = '<i class="fa fa-check mr-1"></i>已复制';
+                    btn.classList.add('bg-green-500/20', 'text-green-400');
+                    btn.classList.remove('hover:bg-primary/30', 'hover:bg-secondary/30');
+                    notify.classList.remove('hidden');
+                    
+                    // 恢复原始状态
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('bg-green-500/20', 'text-green-400');
+                        btn.classList.add(btnId.includes('2') ? 'hover:bg-secondary/30' : 'hover:bg-primary/30');
+                        notify.classList.add('hidden');
+                    }, 2000);
                 });
             });
         }
+        
+        // 导航栏滚动效果
+        function handleNavbarScroll() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('py-2', 'shadow-lg', 'shadow-dark/50');
+                navbar.classList.remove('py-4');
+            } else {
+                navbar.classList.add('py-4');
+                navbar.classList.remove('py-2', 'shadow-lg', 'shadow-dark/50');
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 创建粒子背景
+            createParticles();
+            
+            // 初始化复制按钮
+            initCopyBtn('copy-btn-1', 'config-url-1', 'copy-notification-1');
+            initCopyBtn('copy-btn-2', 'config-url-2', 'copy-notification-2');
+            initCopyBtn('copy-btn-3', 'config-url-3', 'copy-notification-3');
+            
+            // 导航栏滚动效果
+            window.addEventListener('scroll', handleNavbarScroll);
+            handleNavbarScroll(); // 初始检查
+            
+            // 返回顶部按钮
+            const backBtn = document.getElementById('back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backBtn.classList.remove('opacity-0', 'invisible');
+                    backBtn.classList.add('opacity-100', 'visible');
+                } else {
+                    backBtn.classList.add('opacity-0', 'invisible');
+                    backBtn.classList.remove('opacity-100', 'visible');
+                }
+            });
+            
+            backBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            // 平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+                        
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>
