@@ -1,61 +1,30 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HX</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #0F5C32;
-        }
-        img {
-            max-width: 100%;
-            max-height: 100vh;
-            object-fit: contain;
-        }
-    </style>
-</head>
-<body>
-    <img src="hx-logo.png" alt="HX Logo">
+//飞哥自用，禁止传播,后果自负！
 
-    <script>
-        // 判断是否为 TVBox/影视类客户端
-        const userAgent = navigator.userAgent.toLowerCase();
-        const isTVBox = userAgent.includes('tvbox') || userAgent.includes('影视') || userAgent.includes('box');
+//请勿相信视频内任何广告！！
 
-        if (isTVBox) {
-            // TVBox 访问时，返回 JSON 配置
-            document.body.innerHTML = `
-<pre>{
-  "urls": [
-    {
-      "name": "恒轩影视",
-      "url": "https://ioo2.github.io/o/i.png"
-    },
-    {
-      "name": "恒轩短剧",
-      "url": "https://ioo2.github.io/o/d.png"
-    },
-    {
-      "name": "听书听歌",
-      "url": "https://ioo2.github.io/o/T.png"
-    },
-    {
-      "name": "特殊勿点",
-      "url": "https://ioo2.github.io/o/s.png"
-    }
-  ]
-}</pre>`;
-        }
-    </script>
-</body>
-</html>
+
+
+  {
+   "urls": [
+{
+   "name": "恒轩影视",
+ "url": "https://hxys.ddns.net/i.png
+"
+ },
+{
+   "name": "恒轩短剧",
+ "url": "https://hxys.ddns.net/d.png
+"
+ },
+{
+   "name": "听书听歌",
+ "url": "https://hxys.ddns.net/T.png
+"
+ },
+{
+   "name": "特殊勿点",
+  "url": "https://hxys.ddns.net/s.png
+"
+ }
+ ]
+}
