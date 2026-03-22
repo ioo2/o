@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恒轩</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background: #fff;
+            color: #222;
+            padding: 20px 15px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .item {
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        .item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .title {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #000;
+            text-align: center;
+        }
+        .desc {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .link-box {
+            display: flex;
+            align-items: center;
+            background: #f7f7f7;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin: 8px auto;
+            width: fit-content;
+        }
+        .link {
+            flex: 0 1 auto;
+            min-width: 200px;
+            max-width: 350px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: transparent;
+            outline: none;
+            padding: 2px 5px;
+        }
+        .link.show {
+            color: #333;
+        }
+        .link.always-show {
+            color: #333;
+            text-align: center;
+            display: block;
+            background: #f7f7f7;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin: 8px auto;
+            width: fit-content;
+            min-width: 200px;
+            max-width: 350px;
+        }
+        .copy {
+            padding: 5px 9px;
+            background: #eee;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .copy:hover {
+            background: #ddd;
+        }
+        .download-group {
+            display: flex;
+            justify-content: space-between;
+            width: fit-content;
+            margin: 8px auto 0;
+            gap: 40px;
+        }
+        .download-group.single {
+            justify-content: center;
+            width: 100%;
+        }
+        .download {
+            display: inline-block;
+            background: transparent;
+            color: #007bff;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 15px;
+        }
+        .download:hover {
+            background: #f0f7ff;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 13px;
+            color: #999;
+        }
+        .back-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #007bff;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+        }
+        .back-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+<div class="item">
+    <div class="title">影视</div>
+    <div class="desc">下载后复制接口到 设置-点播-使用配置接口</div>
+    <div class="link-box">
+        <input type="text" class="link" value="http://hxys.cc.cd/c" readonly id="url1">
+        <button class="copy" onclick="copy('url1')">复制</button>
+    </div>
+    <div class="download-group">
+        <a href="https://d.kstore.dev/download/12212/影视.apk" class="download" target="_blank">手机版</a>
+        <a href="https://d.kstore.dev/download/12212/影视电视版.apk" class="download" target="_blank">电视版</a>
+    </div>
+</div>
+
+<div class="item">
+    <div class="title">音乐</div>
+    <div class="desc">下载后复制接口到 设置-插件管理-网络插件</div>
+    <div class="link-box">
+        <input type="text" class="link" value="http://hxys.cc.cd/g.json" readonly id="url2">
+        <button class="copy" onclick="copy('url2')">复制</button>
+    </div>
+    <div class="download-group">
+        <a href="https://d.kstore.dev/download/12212/音乐.apk" class="download" target="_blank">手机版</a>
+        <a href="https://d.kstore.dev/download/12212/音乐电脑版.exe" class="download" target="_blank">电脑版</a>
+    </div>
+</div>
+
+<div class="item">
+    <div class="title">阅读</div>
+    <div class="desc">下载后复制接口到 设置-书源管理-网络导入</div>
+    <div class="link-box">
+        <input type="text" class="link" value="http://hxys.cc.cd/s.json" readonly id="url3">
+        <button class="copy" onclick="copy('url3')">复制</button>
+    </div>
+    <div class="download-group single">
+        <a href="https://d.kstore.dev/download/12212/阅读.apk" class="download" target="_blank">手机版</a>
+    </div>
+</div>
+
+<div class="item">
+    <div class="title">苹果区</div>
+    <div class="desc">自带影视、音乐、漫画、小说、听书</div>
+    <input type="text" class="link always-show" value="安装巨魔或购买签证" readonly id="url4">
+    <div class="download-group">
+        <a href="https://d.kstore.dev/download/12212/iBox巨魔版.ipa" class="download" target="_blank">巨魔版</a>
+        <a href="https://d.kstore.dev/download/12212/iBox自签版.ipa" class="download" target="_blank">自签版</a>
+    </div>
+</div>
+
+<div class="item">
+    <div class="title">在线观影</div>
+    
+    <div class="download-group">
+        <a href="https://jnvod.cc" class="download" target="_blank">江南影视</a>
+        <a href="https://cupfox.ai" class="download" target="_blank">茶杯影视</a>
+        <a href="https://juok.cc" class="download" target="_blank">剧吧弹幕</a>
+    </div>
+</div>
+
+<script>
+function copy(id) {
+    let input = document.getElementById(id);
+    input.classList.add('show');
+    input.select();
+    document.execCommand('copy');
+    alert('已复制：' + input.value);
+}
+window.onscroll = function() {
+    let btn = document.getElementById('backTop');
+    if (window.scrollY > 300) {
+        btn.classList.add('show');
+    } else {
+        btn.classList.remove('show');
+    }
+};
+function backTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
