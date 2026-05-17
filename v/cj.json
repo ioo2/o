@@ -1,0 +1,40 @@
+{
+    "ss": 1,
+    "api_site": [
+       {
+            "name": "TV-非凡资源",
+            "api": "https://cj.ffzyapi.com/api.php/provide/vod",
+            "detail": "https://cj.ffzyapi.com",
+            "bz": "0",
+            "paichu": "1,2,3,4"
+      },   
+        {
+            "name": "TV-量子资源",
+            "api": "https://cj.lziapi.com/api.php/provide/vod",
+            "detail": "",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+ {
+            "name": "TV-天堂资源",
+            "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
+            "detail": "http://caiji.dyttzyapi.com",
+            "bz": "0",
+            "paichu": "1,2,3,4"
+        },
+   {
+            "name": "TV-暴风资源",
+            "api": "https://bfzyapi.com/api.php/provide/vod",
+            "detail": "",
+            "bz": "1",
+            "paichu": ""
+        },
+     {
+            "name": "TV-旺旺短剧",
+            "api": "https://wwzy.tv/api.php/provide/vod",
+            "detail": "https://wwzy.tv",
+            "bz": "1",
+            "paichu": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18"
+        }
+    ]
+}

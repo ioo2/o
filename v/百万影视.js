@@ -1,0 +1,20 @@
+{
+    "作者": "恒轩",
+    "站名": "百万影视",
+    "主页url": "https://www.ybwdy.com/",
+    "导演": "导演：&&</div>",
+    "主演": "主演：&&</div>",
+    "影片状态": "备注：&&</div>",
+    "影片类型": "module-info-tag\">&&立即播放",
+    "搜索模式": "1",
+    "搜索url": "https://www.ybwdy.com/sou/-------------.html?wd={wd}",
+    "搜索数组": "module-card-item-class\">&&</a>",
+    "搜索标题": "alt=\"&&\"",
+    "搜索副标题": "note\">&&</div>",
+    "搜索图片": "data-original=\"&&\"",
+    "搜索链接": "href=\"&&\"",
+    "线路数组": "href=\"\\#playlist&&</a>>[替换:线路1>>恒轩️]", 
+    "线路标题": "data-toggle=\"tab\"&&</li>[不包含:线路2#线路3#线路4#线路5#线路6#线路7]",
+    "分类url": "https://www.ybwdy.com/s/dianying-----------/area/{area}/by/{by}/class/{class}/id/{cateId}/page/{catePg}/year/{year}.html",
+    "分类": "电影$dianying#连续剧$lianxuju#综艺$zongyi#动漫$dongman"
+}
