@@ -74,19 +74,21 @@ class Spider(Spider):
         url = f'{self.host}/api.php?type=getsearch&text={key}'
         response = self.fetch(url, headers=self.headers, verify=False).json()
         raw_list = response.get('list', [])
-        if not raw_list:
-            return {'list': [], 'page': int(pg), 'pagecount': 1, 'total': 0}
-
-        def get_max_ep(item):
-            tip = item.get("vod_remarks", "")
-            nums = re.findall(r"\d+", tip)
-            return int(nums[-1]) if nums else 0
-
         
-        raw_list.sort(key=get_max_ep, reverse=True)
-        best_list = raw_list[:1]
+        seen_ids = set()
+        new_list = []
+        for item in raw_list:
+            vod_id = item.get("vod_id")
+            if vod_id and vod_id not in seen_ids:
+                seen_ids.add(vod_id)
+                new_list.append(item)
 
-        return {'list': best_list, 'page': int(pg), 'pagecount': response.get('pagecount', 1), 'total': len(best_list)}
+        return {
+            'list': new_list,
+            'page': int(pg),
+            'pagecount': response.get('pagecount', 1),
+            'total': len(new_list)
+        }
 
     def detailContent(self, ids):
         url = f'{self.host}/api.php?type=getVodinfo&id={ids[0]}'
