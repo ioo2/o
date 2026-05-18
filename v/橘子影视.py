@@ -12,14 +12,12 @@ class Spider(Spider):
     host = ''
 
     def init(self, extend=''):
-       
         if extend:
-            host = extend.strip()
-            if host.startswith('http'):
-                self.host = host.rstrip('/')
+            extend = extend.strip()
+            if extend.startswith('http'):
+                self.host = extend.rstrip('/')
 
     def homeContent(self, filter):
-        
         url = f'{self.host}/api.php?type=getsort'
         response = self.fetch(url, headers=self.headers, verify=False).json()
         classes, filters = [], {}
@@ -52,7 +50,6 @@ class Spider(Spider):
         return {'class': classes, 'filters': filters}
 
     def homeVideoContent(self):
-        
         url = f'{self.host}/api.php?type=getHome'
         response = self.fetch(url, headers=self.headers, verify=False).json()
         videos = []
@@ -65,7 +62,6 @@ class Spider(Spider):
         return {'list': videos}
 
     def categoryContent(self, tid, pg, filter, extend):
-        
         tag = extend.get('class', '全部') if extend else '全部'
         year = extend.get('year', '全部') if extend else '全部'
         
@@ -75,13 +71,24 @@ class Spider(Spider):
         return {'list': response.get('list', []), 'page': int(pg), 'pagecount': response.get('pagecount', 1), 'total': response.get('total', 0)}
 
     def searchContent(self, key, quick, pg="1"):
-        
         url = f'{self.host}/api.php?type=getsearch&text={key}'
         response = self.fetch(url, headers=self.headers, verify=False).json()
-        return {'list': response.get('list', []), 'page': int(pg), 'pagecount': response.get('pagecount', 1), 'total': response.get('total', 0)}
+        raw_list = response.get('list', [])
+        if not raw_list:
+            return {'list': [], 'page': int(pg), 'pagecount': 1, 'total': 0}
+
+        def get_max_ep(item):
+            tip = item.get("vod_remarks", "")
+            nums = re.findall(r"\d+", tip)
+            return int(nums[-1]) if nums else 0
+
+        
+        raw_list.sort(key=get_max_ep, reverse=True)
+        best_list = raw_list[:1]
+
+        return {'list': best_list, 'page': int(pg), 'pagecount': response.get('pagecount', 1), 'total': len(best_list)}
 
     def detailContent(self, ids):
-     
         url = f'{self.host}/api.php?type=getVodinfo&id={ids[0]}'
         response = self.fetch(url, headers=self.headers, verify=False).json()
         
@@ -116,19 +123,14 @@ class Spider(Spider):
         return {'list': [video]}
 
     def playerContent(self, flag, id, vipflags):
-        
         jx = 0
-        
         ua = 'Dalvik/2.1.0 (Linux; U; Android 14; Xiaomi 15 Build/SQ3A.220705.004)'
-        
         ua2 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
-        
         url = ''
         parts = id.split('@')
         vod_url = parts[0]
         vod_id = parts[1] if len(parts) > 1 else ''
         
-       
         try:
             jx_url = f'{self.host}/api.php?type=jx&vodurl={vod_url}&vodid={vod_id}'
             response = self.fetch(jx_url, headers=self.headers, verify=False).json()
@@ -139,16 +141,13 @@ class Spider(Spider):
         except Exception:
             pass
             
-        
         if not url:
             url = vod_url
-            
             if re.search(r'(?:www\.iqiyi|v\.qq|v\.youku|www\.mgtv|www\.bilibili)\.com', vod_url):
                 jx = 1
                 ua = ua2
                 
         return {'jx': jx, 'parse': 0, 'url': url, 'header': {'User-Agent': ua}}
-
 
     def getName(self): pass
     def isVideoFormat(self, url): pass
