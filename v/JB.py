@@ -126,7 +126,7 @@ class Spider(Spider):
 
         play_list = []
         
-        line_priority1 = ['自营b', '自营e', '自营c', '自营d']
+        line_priority1 = ['自营b', '自营c', '自营e', '自营d']
         play_url1 = ''
         for line in line_priority1:
             for idx, line_name_ele in enumerate(nd):
@@ -139,7 +139,7 @@ class Spider(Spider):
         if play_url1:
             play_list.append(('恒轩', play_url1))
 
-        line_priority2 = ['FF有广', 'LZ有广', 'BF有广', 'YZ有广']
+        line_priority2 = ['LZ有广', 'BF有广', 'YZ有广', 'FF有广']
         play_url2 = ''
         for line in line_priority2:
             for idx, line_name_ele in enumerate(nd):
@@ -150,7 +150,7 @@ class Spider(Spider):
             if play_url2:
                 break
         if play_url2:
-            play_list.append(('恒轩有广', play_url2))
+            play_list.append(('广告', play_url2))
 
         # 组合播放线路
         if play_list:
