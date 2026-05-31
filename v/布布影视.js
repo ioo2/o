@@ -1,8 +1,10 @@
+
+
 import {Crypto, _} from 'assets://js/lib/cat.js';
-let host = 'https://bbys.app';
+let host = 'https://bubutv.top';
 let device_id = '';
 const pkg = 'com.sunshine.tv';
-const ver = '4';
+const ver = '6';
 const device_id_cache_key = 'com.sunshine.tv_3qys_B7k7Dt56Rn';
 
 async function init(cfg) {
@@ -55,7 +57,6 @@ async function search(wd, quick, pg=1) {
     });
 }
 
-
 async function detail(id) {
     const hd = await getHeaders();
     const resp = await req(`${host}/api.php/app/vod/get_detail?vod_id=${id}`, { headers: hd });
@@ -63,58 +64,55 @@ async function detail(id) {
     const data = json.data[0];
     const vodplayer = json.vodplayer;
 
-    
+    let allPlayList = [];
+
     const raw_shows = data.vod_play_from.split('$$$');
     const raw_urls_list = data.vod_play_url.split('$$$');
-    const allLines = [];
 
-    
     for (let i = 0; i < raw_shows.length; i++) {
         const show_code = raw_shows[i];
         const urls_str = raw_urls_list[i];
-        const player_info = _.find(vodplayer, (p) => p.from === show_code);
-        if (!player_info) continue;
+        let need_parse = 0;
+        let is_show = 0;
 
-        const urls = [];
-        for (const u of urls_str.split('#')) {
-            if (u.includes('$')) {
-                const [ep, url] = u.split('$');
-                urls.push({ ep, url });
+        const player_info = _.find(vodplayer, (p) => p.from === show_code);
+        if (player_info) {
+            is_show = 1;
+            need_parse = player_info.decode_status;
+        }
+        if (is_show === 1) {
+            const urls = [];
+            for (const url_item of urls_str.split('#')) {
+                if (url_item.includes('$')) {
+                    const [episode, url] = url_item.split('$');
+                    urls.push(`${episode}$${show_code}@${need_parse}@${url}`);
+                }
+            }
+            if (urls.length > 0) {
+                allPlayList.push({
+                    code: show_code,
+                    urls: urls.join('#')
+                });
             }
         }
-        if (urls.length === 0) continue;
-
-        allLines.push({
-            show_code,
-            show_name: player_info.show,
-            need_parse: player_info.decode_status,
-            urls_str,
-            urls
-        });
     }
 
 
-    let target = null;
-    target = _.find(allLines, line => 
-        line.show_name.includes('JD蓝光') || line.show_name.includes('JD4K')
+    let bestUrls = '';
+    const jdLine = allPlayList.find(item =>
+        item.code.toLowerCase().includes('jd') ||
+        item.code.includes('JD4K') ||
+        item.code.includes('JD蓝光')
     );
+    if (jdLine) {
+        bestUrls = jdLine.urls;
+    } else {
 
-    
-    if (!target && allLines.length > 0) {
-        target = allLines[0];
-    }
-
-    
-    const shows = [];
-    const play_urls = [];
-    if (target) {
-        const finalUrls = [];
-        for (const u of target.urls) {
-            finalUrls.push(`${u.ep}$${target.show_code}@${target.need_parse}@${u.url}`);
+        if (allPlayList.length > 0) {
+            bestUrls = allPlayList[0].urls;
         }
-        play_urls.push(finalUrls.join('#'));
-        shows.push('恒轩'); 
     }
+
 
     const video = {
         'vod_id': data.vod_id.toString(),
@@ -126,8 +124,8 @@ async function detail(id) {
         'vod_actor': data.vod_actor,
         'vod_director': data.vod_director,
         'vod_content': data.vod_content,
-        'vod_play_from': shows.join('$$$'),
-        'vod_play_url': play_urls.join('$$$'),
+        'vod_play_from': '恒轩',
+        'vod_play_url': bestUrls,
         'type_name': data.vod_class
     };
     return JSON.stringify({ list: [video] });
@@ -185,7 +183,7 @@ async function getHeaders() {
         'x-device-id': device_id,
         'x-device-brand': 'vivo',
         'x-device-model': 'V2309A',
-        'x-update-id': '0245861b-2ebf-5524-389d-f983830651ec'
+        'x-update-id': '445671b4-1c8b-4872-8795-a1119689a791'
     };
 }
 
