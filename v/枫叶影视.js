@@ -36,11 +36,11 @@ async function init(cfg) {
 
 async function home(filter) {
     const classes = [
-        { type_id: '1', type_name: '电视剧' },
-        { type_id: '2', type_name: '电影' },
-        { type_id: '3', type_name: '动漫' },
-        { type_id: '4', type_name: '短剧' },
-        { type_id: '5', type_name: '综艺' }
+        { type_id: '1', type_name: '电影' },
+        { type_id: '2', type_name: '电视剧' },
+        { type_id: '3', type_name: '综艺' },
+        { type_id: '4', type_name: '动漫' },
+        { type_id: '5', type_name: '短剧' }
     ];
     return JSON.stringify({ class: classes });
 }
@@ -106,51 +106,62 @@ async function detail(id) {
         vod_play_url: []
     };
 
-    
-    let playGroups = [];
+    // 收集所有线路
+    let playList = [];
     $('.anthology-tab a').each((index, el) => {
         const name = $(el).text().trim().replace(/\s/g, '').replace(/\(\d+\)/, '');
         if (!name) return;
 
-      
         let items = [];
         $($('.anthology-list-box')[index]).find('ul li a').each((_, a) => {
             const n = $(a).text().trim();
-            const href = $(a).attr('href');
-            if (href) {
-                const m = href.match(/play\/(.*?)\.html/);
+            const h = $(a).attr('href');
+            if (h) {
+                const m = h.match(/play\/(.*?)\.html/);
                 if (m) items.push(`${n}$${m[1]}`);
             }
         });
-        items = items.reverse();
-        if (items.length === 0) return;
-
-        playGroups.push({
-            name: name,
-            url: items.join('#')
-        });
+        items.reverse();
+        const urlStr = items.join('#');
+        if (urlStr) {
+            playList.push({ name, url: urlStr });
+        }
     });
 
-    
-    const priorities = ['至臻4K', '4K', '超清', '在线', '默认'];
-    let best = null;
-    for (const kw of priorities) {
-        const found = playGroups.find(g =>
-            g.name.includes(kw) || g.name.includes(kw.replace('至臻', ''))
-        );
-        if (found && found.url) {
-            best = found;
-            break;
-        }
+    // 优先选择：至臻4K → 无则第一条
+    let target = playList.find(i => i.name.includes('至臻4K') || i.name.includes('4K'));
+    if (!target) target = playList[0];
+
+    // 只输出一条，名字强制：恒轩
+    if (target) {
+        vod.vod_play_from = ['恒轩'];
+        vod.vod_play_url = [target.url];
     }
 
-    
-    if (!best) best = playGroups.find(g => g.url) || playGroups[0];
-
-    vod.vod_play_from = ['恒轩'].join('$$$');
-    vod.vod_play_url = [best?.url || ''].join('$$$');
-
+    vod.vod_play_from = vod.vod_play_from.join('$$$');
+    vod.vod_play_url = vod.vod_play_url.join('$$$');
     return JSON.stringify({ list: [vod] });
+}
+
+async function search(wd, quick) {
+    const url = `${HOST}/cupfox-search/${encodeURIComponent(wd)}----------1---.html`;
+    const html = await request(url);
+    if (!html) return JSON.stringify({ list: [] });
+    const $ = parseHtml(html);
+    let videos = [];
+    $('.search-box').each((_, el) => {
+        const a = $(el).find('.public-list-exp');
+        const href = a.attr('href') || '';
+        if (href.includes('/detail/')) {
+            videos.push({
+                vod_id: href.match(/detail\/(.*?)\.html/)[1],
+                vod_name: $(el).find('.thumb-txt a').text().trim(),
+                vod_pic: a.find('img').attr('data-src') || a.find('img').attr('src'),
+                vod_remarks: a.find('.public-list-prb').text().trim()
+            });
+        }
+    });
+    return JSON.stringify({ list: videos });
 }
 
 async function play(flag, id, flags) {
@@ -166,7 +177,9 @@ async function play(flag, id, flags) {
         let rawUrl = config.url || '';
         const from = config.from || '';
 
-    
+        // 自动补全协议
+        if (rawUrl.startsWith('//')) rawUrl = 'https:' + rawUrl;
+
         if (rawUrl.startsWith('http')) {
             const isDirect = rawUrl.includes('.m3u8') || rawUrl.includes('.mp4');
             return JSON.stringify({
@@ -176,21 +189,22 @@ async function play(flag, id, flags) {
             });
         }
 
-        
-        if (from === 'JD4K' || from === '4K' || from === '至臻4K' || rawUrl.includes('4K')) {
-            const jx = 'https://fgsrg.hzqingshan.com/player/?url=' + rawUrl;
-            return JSON.stringify({ parse: 1, url: jx, header: DefaultHeader });
+        if (from === 'JD4K' || from === 'JD' || rawUrl.startsWith('JD-')) {
+            const jxUrl = 'https://fgsrg.hzqingshan.com/player/?url=' + rawUrl;
+            return JSON.stringify({
+                parse: 1,
+                url: jxUrl,
+                header: DefaultHeader
+            });
         }
 
-        
         return JSON.stringify({
             parse: 1,
             url: rawUrl || url,
             header: DefaultHeader
         });
-
     } catch (e) {
-        return JSON.stringify({ parse: 1, url: '' });
+        return JSON.stringify({ parse: 1, url: url || '' });
     }
 }
 
