@@ -1,141 +1,207 @@
-# -*- coding: utf-8 -*-
-import re,json,urllib.parse
-from base.spider import Spider
+import { load, _ } from 'assets://js/lib/cat.js';
 
-class Spider(Spider):
-    def_headers = {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
+let HOST = 'https://www.budaichuchen.net';
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+const DefaultHeader = {
+    'User-Agent': UA,
+    'Referer': HOST + '/',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+};
+
+async function request(url, options = {}) {
+    try {
+        const optObj = {
+            headers: options.headers || DefaultHeader,
+            timeout: 10000,
+            method: options.method || 'GET',
+            data: options.data || ''
+        };
+        const res = await req(url, optObj);
+        return res?.content ?? '';
+    } catch (e) {
+        return '';
     }
-    host = 'https://www.ht10010.com'
+}
 
-    def getName(self):
-        return '枫叶影院'
+function parseHtml(html) {
+    return load(html);
+}
 
-    def init(self, extend=''):
-        pass
+async function init(cfg) {
+    if (cfg.ext && typeof cfg.ext === 'string') {
+        HOST = cfg.ext;
+    }
+}
 
-    def homeContent(self, filter):
-        return {'class':[
-            {'type_id':'2','type_name':'电视剧'},
-            {'type_id':'1','type_name':'电影'},
-            {'type_id':'4','type_name':'动漫'},
-            {'type_id':'3','type_name':'综艺'},
-        ]}
+async function home(filter) {
+    const classes = [
+        { type_id: '1', type_name: '电视剧' },
+        { type_id: '2', type_name: '电影' },
+        { type_id: '3', type_name: '动漫' },
+        { type_id: '4', type_name: '短剧' },
+        { type_id: '5', type_name: '综艺' }
+    ];
+    return JSON.stringify({ class: classes });
+}
 
-    def homeVideoContent(self):
-        return {'list':[]}
+async function homeVod() {
+    const html = await request(HOST);
+    if (!html) return JSON.stringify({ list: [] });
+    const $ = parseHtml(html);
+    let videos = [];
+    $('.public-list-box').each((_, el) => {
+        const a = $(el).find('.public-list-exp');
+        const href = a.attr('href') || '';
+        if (href.includes('/detail/')) {
+            videos.push({
+                vod_id: href.match(/detail\/(.*?)\.html/)[1],
+                vod_name: a.attr('title'),
+                vod_pic: a.find('img').attr('data-src') || a.find('img').attr('src'),
+                vod_remarks: $(el).find('.public-list-prb').text().trim()
+            });
+        }
+    });
+    return JSON.stringify({ list: videos });
+}
 
-    def categoryContent(self, tid, pg, filter, extend):
-        html = self._fetch(f'/type/{tid}.html')
-        return {'page':int(pg),'pagecount':99,'limit':36,'total':999,'list':self._extractList(html)}
+async function category(tid, pg, filter, extend) {
+    const area = extend.area || '';
+    const by = extend.by || 'time';
+    const clazz = extend.class || '';
+    const year = extend.year || '';
+    const lang = extend.lang || '';
+    const letter = extend.letter || '';
+    const url = `${HOST}/cupfox-list/${tid}-${area}-${by}-${clazz}-${lang}-${letter}---${pg}---${year}.html`;
+    const html = await request(url);
+    if (!html) return JSON.stringify({ list: [] });
+    const $ = parseHtml(html);
+    let videos = [];
+    $('.public-list-box').each((_, el) => {
+        const a = $(el).find('.public-list-exp');
+        const href = a.attr('href') || '';
+        if (href.includes('/detail/')) {
+            videos.push({
+                vod_id: href.match(/detail\/(.*?)\.html/)[1],
+                vod_name: a.attr('title'),
+                vod_pic: $(el).find('img').attr('data-src') || $(el).find('img').attr('src'),
+                vod_remarks: $(el).find('.public-list-prb').text().trim()
+            });
+        }
+    });
+    return JSON.stringify({ page: parseInt(pg), list: videos });
+}
 
-    def detailContent(self, ids):
-        result = {'list':[]}
-        vid = ids[0].split(',')[0].strip()
-        try:
-            html = self._fetch(f'/detail/{vid}.html')
-            if not html: return result
-            title = re.search(r'<h3[^>]*class="[^"]*slide-info-title[^"]*"[^>]*>([^<]*)</h3>', html)
-            vod_name = title.group(1).strip() if title else ''
-            pic = re.search(r'<img[^>]*class="[^"]*lazy[^"]*"[^>]*data-src="([^"]*)"', html)
-            vod_pic = self._fixPic(pic.group(1)) if pic else ''
-            dir_m = re.search(r'导演：</strong>\s*([^<]*)', html)
-            vod_director = dir_m.group(1).strip() if dir_m else ''
-            act_m = re.search(r'演员：</strong>(.*?)</div>', html)
-            if act_m: vod_actor = re.sub(r'<[^>]+>', ' ', act_m.group(1)).strip()
-            else: vod_actor = ''
-            vod_content = ''
-            tab_area = re.search(r'<div class="anthology-tab[^"]*"[^>]*>(.*?)</div>\s*<div class="anthology-list', html, re.S)
-            single_ep_list = []
-            if tab_area:
-                raw_tabs = re.findall(r'<a[^>]*class="[^"]*swiper-slide[^"]*"[^>]*>(.*?)</a>', tab_area.group(1))
-                tabs = [re.sub(r'<[^>]+>','',t).replace('&nbsp;','').replace('\u00a0','').strip() for t in raw_tabs]
-                tabs = [t for t in tabs if t]
-                tab_blocks = re.findall(r'<div class="anthology-list-box[^"]*"[^>]*>(.*?)</div>\s*</div>', html, re.S)
-                priority_idx = -1
-                for idx, t in enumerate(tabs):
-                    if '4k' in t.lower() or '至臻' in t:
-                        priority_idx = idx
-                        break
-                if priority_idx != -1 and priority_idx < len(tab_blocks):
-                    block_4k = tab_blocks[priority_idx]
-                    eps_4k = re.findall(r'<a[^>]*href="(/play/[^"]*)"[^>]*>(.*?)</a>', block_4k)
-                    if eps_4k:
-                        for href, name in eps_4k:
-                            m = re.search(r'/play/(.*?)\.html', href)
-                            if m: single_ep_list.append(f'{name.strip()}${m.group(1)}')
-                if not single_ep_list:
-                    for block in tab_blocks:
-                        eps = re.findall(r'<a[^>]*href="(/play/[^"]*)"[^>]*>(.*?)</a>', block)
-                        for href, name in eps:
-                            m = re.search(r'/play/(.*?)\.html', href)
-                            if m: single_ep_list.append(f'{name.strip()}${m.group(1)}')
-                        if single_ep_list: break
-                single_ep_list.reverse()
-            play_from = ['恒轩']
-            play_url = ['#'.join(single_ep_list)] if single_ep_list else ['']
-            result['list'].append({
-                'vod_id':vid,
-                'vod_name':vod_name,
-                'vod_pic':vod_pic,
-                'vod_director':vod_director,
-                'vod_actor':vod_actor,
-                'vod_content':vod_content,
-                'vod_play_from':'$$$'.join(play_from),
-                'vod_play_url':'$$$'.join(play_url)
-            })
-        except: pass
-        return result
+async function detail(id) {
+    const url = `${HOST}/detail/${id}.html`;
+    const html = await request(url);
+    if (!html) return "{}";
+    const $ = parseHtml(html);
+    const vod = {
+        vod_id: id,
+        vod_name: $('.slide-info-title').text().trim(),
+        vod_pic: $('.detail-pic img').attr('data-src') || $('.detail-pic img').attr('src'),
+        vod_content: $('#height_limit').text().trim(),
+        vod_play_from: [],
+        vod_play_url: []
+    };
 
-    def searchContent(self, key, quick, pg='1'):
-        html = self._fetch(f'/cupfox-search/{urllib.parse.quote(key)}----------{pg}---.html')
-        return {'list':self._extractList(html),'page':int(pg),'pagecount':1,'limit':36,'total':0}
+    
+    let playGroups = [];
+    $('.anthology-tab a').each((index, el) => {
+        const name = $(el).text().trim().replace(/\s/g, '').replace(/\(\d+\)/, '');
+        if (!name) return;
 
-    def playerContent(self, flag, id, vipFlags):
-        try:
-            url = f'{self.host}/play/{id}.html'
-            html = self._fetch(url)
-            if not html: return {'parse':1,'url':url,'header':self.def_headers}
-            m = re.search(r'var\s+player_aaaa\s*=\s*(\{.*?\});', html, re.S)
-            if m:
-                try:
-                    pd = json.loads(m.group(1))
-                    pu = pd.get('url','')
-                    if pu:
-                        header = {'User-Agent': self.def_headers['User-Agent'], 'Referer': self.host + '/'}
-                        if pu.endswith('.m3u8') or pu.endswith('.mp4'):
-                            return {'parse': 0, 'url': pu, 'header': header}
-                        if pu.startswith('http'):
-                            return {'parse': 1, 'url': pu, 'header': header}
-                except: pass
-            return {'parse':1,'url':url,'header':self.def_headers}
-        except: return {'parse':1,'url':id,'header':self.def_headers}
+      
+        let items = [];
+        $($('.anthology-list-box')[index]).find('ul li a').each((_, a) => {
+            const n = $(a).text().trim();
+            const href = $(a).attr('href');
+            if (href) {
+                const m = href.match(/play\/(.*?)\.html/);
+                if (m) items.push(`${n}$${m[1]}`);
+            }
+        });
+        items = items.reverse();
+        if (items.length === 0) return;
 
-    def localProxy(self, param=''): return {}
-    def isVideoFormat(self, url): return False
-    def manualVideoCheck(self): return False
+        playGroups.push({
+            name: name,
+            url: items.join('#')
+        });
+    });
 
-    def _fetch(self, url):
-        try:
-            if not url.startswith('http'): url = self.host + url
-            rsp = self.fetch(url, headers=self.def_headers, verify=False)
-            return rsp.text if rsp else ''
-        except: return ''
+    
+    const priorities = ['至臻4K', '4K', '超清', '在线', '默认'];
+    let best = null;
+    for (const kw of priorities) {
+        const found = playGroups.find(g =>
+            g.name.includes(kw) || g.name.includes(kw.replace('至臻', ''))
+        );
+        if (found && found.url) {
+            best = found;
+            break;
+        }
+    }
 
-    def _fixPic(self, u):
-        if not u: return ''
-        if u.startswith('//'): return 'https:' + u
-        return u.replace('&amp;','&')
+    
+    if (!best) best = playGroups.find(g => g.url) || playGroups[0];
 
-    def _extractList(self, html):
-        videos, seen = [], set()
-        cards = re.findall(r'<a[^>]*class="public-list-exp"[^>]*href="/detail/(\d+)\.html"[^>]*title="([^"]*)"[^>]*>.*?<img[^>]*data-src="([^"]*)"', html, re.S)
-        for vid, title, pic in cards:
-            if vid in seen: continue
-            seen.add(vid)
-            remark_block = re.findall(r'<div[^>]*class="public-list-box[^"]*"[^>]*>.*?href="/detail/' + vid + r'\.html".*?' r'<i[^>]*class="ft2"[^>]*>([^<]*)</i>', html, re.S)
-            remark = remark_block[0].strip() if remark_block else ''
-            videos.append({'vod_id':vid,'vod_name':title.strip(),'vod_pic':self._fixPic(pic),'vod_remarks':remark})
-        return videos
+    vod.vod_play_from = ['恒轩'].join('$$$');
+    vod.vod_play_url = [best?.url || ''].join('$$$');
+
+    return JSON.stringify({ list: [vod] });
+}
+
+async function play(flag, id, flags) {
+    try {
+        const url = `${HOST}/play/${id}.html`;
+        const html = await request(url);
+        if (!html) return JSON.stringify({ parse: 0, url: '' });
+
+        const match = html.match(/var\s+player_aaaa\s*=\s*(\{.*?\});/);
+        if (!match) return JSON.stringify({ parse: 1, url: url });
+
+        const config = JSON.parse(match[1]);
+        let rawUrl = config.url || '';
+        const from = config.from || '';
+
+    
+        if (rawUrl.startsWith('http')) {
+            const isDirect = rawUrl.includes('.m3u8') || rawUrl.includes('.mp4');
+            return JSON.stringify({
+                parse: isDirect ? 0 : 1,
+                url: rawUrl,
+                header: DefaultHeader
+            });
+        }
+
+        
+        if (from === 'JD4K' || from === '4K' || from === '至臻4K' || rawUrl.includes('4K')) {
+            const jx = 'https://fgsrg.hzqingshan.com/player/?url=' + rawUrl;
+            return JSON.stringify({ parse: 1, url: jx, header: DefaultHeader });
+        }
+
+        
+        return JSON.stringify({
+            parse: 1,
+            url: rawUrl || url,
+            header: DefaultHeader
+        });
+
+    } catch (e) {
+        return JSON.stringify({ parse: 1, url: '' });
+    }
+}
+
+export function __jsEvalReturn() {
+    return {
+        init: init,
+        home: home,
+        homeVod: homeVod,
+        category: category,
+        detail: detail,
+        play: play,
+        search: search
+    };
+}
