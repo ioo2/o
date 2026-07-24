@@ -308,7 +308,6 @@ async function detail(id) {
         };
     });
 
-    // 屏蔽VIP、蓝光①线路
     const blockLine = ['VIP'];
     playSources = playSources.filter(source => {
         let isBlock = false;
@@ -321,10 +320,9 @@ async function detail(id) {
         return !isBlock && source.urls;
     });
 
-    // 排序：蓝光②最高优先级
-    playSources.sort((a, b) => {
+       playSources.sort((a, b) => {
         const getPriority = (show) => {
-            if (show.includes('蓝光②')) return 1;
+            if (show.includes('蓝光')) return 1;
             if (show.includes('4k')) return 2;
             if (show.includes('K')) return 3;
             if (show.includes('独家')) return 4;
