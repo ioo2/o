@@ -309,7 +309,7 @@ async function detail(id) {
     });
 
     // 屏蔽VIP、蓝光①线路
-    const blockLine = ['VIP', '蓝光①'];
+    const blockLine = ['VIP'];
     playSources = playSources.filter(source => {
         let isBlock = false;
         for (let word of blockLine) {
