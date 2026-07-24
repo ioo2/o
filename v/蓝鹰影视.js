@@ -338,7 +338,7 @@ async function detail(id) {
 
    
     let targetSource = null;
-    targetSource = playSources.find(s => s.show.includes('蓝光①') && s.urls);
+    targetSource = playSources.find(s => s.show.includes('蓝光②') && s.urls);
     if (!targetSource) {
         targetSource = playSources.find(s => s.urls);
     }
