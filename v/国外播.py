@@ -135,7 +135,7 @@ class Spider(Spider):
             status_text = '直播中'
         else:
             status_text = '收费房'
-        return f'👤 {viewers}人 | {status_text}' if viewers else status_text
+        return f' {viewers}人 | {status_text}' if viewers else status_text
 
     def categoryContent(self, tid, pg, filter, extend):
         try:
@@ -225,7 +225,7 @@ class Spider(Spider):
                     remark = f"购票表演始于 {self.datetime_utc8(startAt, '%m月%d日 %H:%M')}"
             director = f'{flag}{username}'
             desc = self.get_danmaku_desc(uid)
-            vod_play_from = '恒轩$$$.$$$ '
+            vod_play_from = '恒轩$$$A$$$ '
             vod_play_url = f'直播${uid}$$$直播$lemon_{uid}$$$直播$sacf_{uid}'
             return {
                 'list': [{
