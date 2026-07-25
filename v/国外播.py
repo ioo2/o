@@ -225,7 +225,7 @@ class Spider(Spider):
                     remark = f"🎫 购票表演始于 {self.datetime_utc8(startAt, '%m月%d日 %H:%M')}"
             director = f'{flag}{username}'
             desc = self.get_danmaku_desc(uid)
-            vod_play_from = '恒轩$$$备$$$选'
+            vod_play_from = '恒轩$$$备$$$用'
             vod_play_url = f'直播${uid}$$$直播$lemon_{uid}$$$直播$sacf_{uid}'
             return {
                 'list': [{
