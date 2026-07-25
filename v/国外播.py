@@ -115,7 +115,6 @@ class Spider(Spider):
             {'n': '推荐', 'v': 'recommended'},
             {'n': '亚洲人', 'v': 'ethnicityAsian'},
             {'n': '🇯🇵日本', 'v': 'tagLanguageJapanese'},
-            {'n': '🇰🇷韩国', 'v': 'tagLanguageKorean'},
         ]
         VALUE_MEN = [
             {'n': '情侣', 'v': 'sexGayCouples'},
