@@ -328,9 +328,9 @@ class Spider(Spider):
       director = f'{flag}{username}'
       desc = self.get_danmaku_desc(uid)
 
-      vod_play_from = '恒轩$$$1$$$2'
+      vod_play_from = '恒轩$$$o$$$0'
       vod_play_url = (
-          f'主线路${uid}$$$备用线路$lemon_{uid}$$$备用线路三$sacf_{uid}'
+          f'直播${uid}$$$直播o$lemon_{uid}$$$直播0$sacf_{uid}'
       )
 
       return {
