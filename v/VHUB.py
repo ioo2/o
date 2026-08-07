@@ -215,11 +215,7 @@ class Spider(Spider):
 
             if hls_url:
                 play_urls.append('高清HLS$' + hls_url)
-            if hight_url:
-                play_urls.append('高清MP4$' + hight_url)
-            if low_url:
-                play_urls.append('低清MP4$' + low_url)
-
+            
             title = item.get('title', '')
             if title:
                 clean_title = re.sub(r'^AVOTC资源网[—-]+\s*', '', title).strip()
@@ -242,10 +238,7 @@ class Spider(Spider):
 
                 if hls_url:
                     play_urls.append('高清HLS$' + hls_url)
-                if hight_url:
-                    play_urls.append('高清MP4$' + hight_url)
-                if low_url:
-                    play_urls.append('低清MP4$' + low_url)
+                
 
                 if vod['vod_name'] == '视频详情':
                     title = item.get('title', '')
