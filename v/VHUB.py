@@ -187,7 +187,7 @@ class Spider(Spider):
             'vod_name': '视频详情',
             'vod_pic': '',
             'vod_remarks': '',
-            'vod_play_from': '恒轩',
+            'vod_play_from': 'newxvideos',
             'vod_play_url': ''
         }
 
