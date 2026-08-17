@@ -60,5 +60,33 @@
   ],
   "huancun": 863000,
   "tishi": "！",
-  "qiangzhi": 1
+  "qiangzhi": 1,
+  "color": {
+    "morenzhuti": 0,
+    "homeHeadColor": [
+      "#FFFFFF",
+      "#FFFFFF",
+      "#FFFFFF"
+    ],
+    "bottomLabel": [
+      "首页",
+      "榜单",
+    "我的"
+    ],
+    "rankbg": "/tu/1777291647106845739.webp",
+    "bgWhite": "#FFEDEDED",
+    "textBlack": "#FF121212",
+    "textGray": "#FF666666",
+    "textModule": "#FF121212",
+    "textSubModule": "#FF666666",
+    "tintBlack": "#FF121212",
+    "buttonBg": "#FFffffff",
+    "moduleBg": "#FFffffff",
+    "mineBg": "#FFEDEDED",
+    "longinRegisterBg": "#FFEDEDED",
+    "feedBackBg": "#FFEDEDED",
+    "requestVideoBg": "#FFEDEDED",
+    "searchBg": "#FFEDEDED",
+    "videoBg": "#fefefe"
+  }
 }
