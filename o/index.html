@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>恒轩工具</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Microsoft YaHei}
+body{padding:20px;background:#f5f7fa;max-width:1280px;margin:0 auto}
+.card{background:#fff;padding:18px;border-radius:10px;margin-bottom:20px;box-shadow:0 1px 8px #e2e6ef}
+h3{margin-bottom:12px;color:#1f2937;font-size:17px}
+input{width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;margin:7px 0}
+.btns{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
+button{padding:9px 18px;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:14px;transition:all 0.2s ease;}
+button:hover{transform:scale(1.05);box-shadow:0 2px 10px rgba(0,0,0,0.15)}
+.btn-b64,.btn-gzip,.btn-aes,.btn-lvdou,.btn-copy,.btn-clear,.btn-link{background:#0284c7}
+.tip{color:#666;font-size:13px;margin:6px 0}
+hr{border:0;border-top:1px solid #eee;margin:16px 0}
+.aes-row{display:flex;gap:16px;margin:8px 0}
+.aes-col{flex:1}
+.main-title{text-align:center;font-size:42px;font-weight:900;padding:16px 0;letter-spacing:4px;background:linear-gradient(90deg,#ff4757,#ffa502,#2ed573,#1e90ff,#a55eea);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;cursor:pointer;transition:all 0.2s;}
+.main-title:hover{transform:scale(1.03);filter:brightness(1.1);}
+.text-wrap{
+  position:relative;
+  width:100%;
+  border:1px solid #d1d5db;
+  border-radius:6px;
+  margin:8px 0;
+}
+.text-wrap:-webkit-full-screen{
+  width:100vw;
+  height:100vh;
+  background:#ffffff;
+  border-radius:0;
+}
+.text-wrap:fullscreen{
+  width:100vw;
+  height:100vh;
+  background:#ffffff;
+  border-radius:0;
+}
+.text-wrap textarea{
+  width:100%;
+  min-height:150px;
+  border:none;
+  outline:none;
+  padding:12px;
+  font-size:14px;
+  resize:vertical;
+}
+.exit-full-btn{
+  position:absolute;
+  top:12px;
+  right:12px;
+  z-index:9999;
+  background:#6b7280 !important;
+  display:none;
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+</head>
+<body>
+<div class="card">
+    <div class="main-title" onclick="window.open('https://www.xn--sss604efuw.net/jm/')">恒轩工具</div>
+</div>
+<hr>
+<div class="card">
+<h3>1. Base64 编解码</h3>
+<input type="file" id="b64FileInput" accept=".txt">
+<input id="b64UrlInput" placeholder="URL地址">
+<div class="btns">
+<button class="btn-b64" onclick="readTxtFileToBox()">读取</button>
+<button class="btn-link" onclick="fetchB64Remote()">网络</button>
+<button class="btn-b64" onclick="txtToB64()">加码</button>
+<button class="btn-b64" onclick="b64ToTxt()">解码</button>
+<button class="btn-b64" onclick="saveBoxToTxt()">导出</button>
+<button class="btn-copy" onclick="copyText('b64Txt')">复制</button>
+<button class="btn-clear" onclick="document.getElementById('b64Txt').value=''">清空</button>
+<button class="btn-link full-b64">全屏</button>
+</div>
+<div class="text-wrap wrap-b64">
+  <button class="exit-full-btn exit-b64">退出全屏</button>
+  <textarea id="b64Txt"></textarea>
+</div>
+</div>
+<div class="card">
+<h3>2. Gzip 编解码</h3>
+<input type="file" id="gzipFileInput" accept=".txt">
+<input id="gzipUrlInput" placeholder="URL地址">
+<div class="btns">
+<button class="btn-gzip" onclick="readGzipTxt()">读取</button>
+<button class="btn-link" onclick="fetchGzipRemote()">网络</button>
+<button class="btn-gzip" onclick="txtGzipB64()">加码</button>
+<button class="btn-gzip" onclick="gzipB64Txt()">解码</button>
+<button class="btn-gzip" onclick="saveGzipTxt()">导出</button>
+<button class="btn-copy" onclick="copyText('gzipTxt')">复制</button>
+<button class="btn-clear" onclick="document.getElementById('gzipTxt').value=''">清空</button>
+<button class="btn-link full-gz">全屏</button>
+</div>
+<div class="text-wrap wrap-gz">
+  <button class="exit-full-btn exit-gz">退出全屏</button>
+  <textarea id="gzipTxt"></textarea>
+</div>
+</div>
+<div class="card">
+<h3>3. AES 编解码</h3>
+<input type="file" id="aesFileInput" accept=".txt">
+<input id="aesUrlInput" placeholder="URL地址">
+<div class="aes-row">
+    <div class="aes-col">
+        <label>密钥KEY</label>
+        <input id="aesKey" maxlength="16" placeholder="不足16位自动补0" value="123456">
+    </div>
+    <div class="aes-col">
+        <label>IV向量</label>
+        <input id="aesIv" disabled placeholder="加密自动生成">
+    </div>
+</div>
+<div class="btns">
+<button class="btn-aes" onclick="readAesTxt()">读取</button>
+<button class="btn-link" onclick="fetchAesRemote()">网络</button>
+<button class="btn-aes" onclick="runAesEncrypt()">加码</button>
+<button class="btn-aes" onclick="runAesDecrypt()">解码</button>
+<button class="btn-aes" onclick="saveAesTxt()">导出</button>
+<button class="btn-copy" onclick="copyText('aesTxt')">复制</button>
+<button class="btn-clear" onclick="document.getElementById('aesTxt').value=''">清空</button>
+<button class="btn-link full-aes">全屏</button>
+</div>
+<div class="text-wrap wrap-aes">
+  <button class="exit-full-btn exit-aes">退出全屏</button>
+  <textarea id="aesTxt"></textarea>
+</div>
+</div>
+<div class="card">
+<h3>4. lvDou+编解码</h3>
+<input type="file" id="lvDouFileInput" accept=".txt">
+<input id="lvDouUrlInput" placeholder="URL地址">
+<div class="aes-row">
+    <div class="aes-col">
+        <label>密钥KEY（默认lvDou1234567890）</label>
+        <input id="lvDouKey" placeholder="留空使用默认密钥" value="lvDou1234567890">
+    </div>
+    <div class="aes-col">
+        <label>IV向量（默认lvDou0987654321）</label>
+        <input id="lvDouIv" placeholder="留空使用默认IV" value="lvDou0987654321">
+    </div>
+</div>
+<div class="btns">
+<button class="btn-lvdou" onclick="readLvDouTxt()">读取</button>
+<button class="btn-link" onclick="fetchLvDouRemote()">网络</button>
+<button class="btn-lvdou" onclick="lvDouEncrypt()">加码</button>
+<button class="btn-lvdou" onclick="lvDouDecrypt()">解码</button>
+<button class="btn-lvdou" onclick="saveLvDouTxt()">导出</button>
+<button class="btn-copy" onclick="copyText('lvDouTxt')">复制</button>
+<button class="btn-clear" onclick="document.getElementById('lvDouTxt').value=''">清空</button>
+<button class="btn-link full-lv">全屏</button>
+</div>
+<div class="text-wrap wrap-lv">
+  <button class="exit-full-btn exit-lv">退出全屏</button>
+  <textarea id="lvDouTxt"></textarea>
+</div>
+</div>
+<script>
+async function bindFs(openSel,exitSel,wrapSel){
+  const openBtn=document.querySelector(openSel);
+  const exitBtn=document.querySelector(exitSel);
+  const wrap=document.querySelector(wrapSel);
+  const ta=wrap.querySelector('textarea');
+  if(!openBtn||!exitBtn||!wrap||!ta) return;
+  let oldTaHeight=ta.style.height;
+  openBtn.onclick=async ()=>{
+    wrap.requestFullscreen?.()||wrap.webkitRequestFullscreen?.();
+    ta.style.height="100%";
+    if(screen.orientation && screen.orientation.lock){
+      try{await screen.orientation.lock('portrait-primary');}catch(e){}
+    }
+  }
+  exitBtn.onclick=()=>{
+    document.exitFullscreen?.()||document.webkitExitFullscreen?.();
+    ta.style.height=oldTaHeight;
+    if(screen.orientation && screen.orientation.unlock){
+      screen.orientation.unlock();
+    }
+  }
+  document.addEventListener('fullscreenchange',()=>{
+    if(document.fullscreenElement===wrap||document.webkitFullscreenElement===wrap){
+      exitBtn.style.display="block";
+      ta.style.height="100%";
+    }else{
+      exitBtn.style.display="none";
+      ta.style.height=oldTaHeight;
+      if(screen.orientation && screen.orientation.unlock){
+        screen.orientation.unlock();
+      }
+    }
+  })
+}
+bindFs('.full-b64','.exit-b64','.wrap-b64');
+bindFs('.full-gz','.exit-gz','.wrap-gz');
+bindFs('.full-aes','.exit-aes','.wrap-aes');
+bindFs('.full-lv','.exit-lv','.wrap-lv');
+async function fetchRemoteText(inId,taId){
+  const u=document.getElementById(inId).value.trim();
+  if(!u){alert("请填入URL");return;}
+  try{
+    const r=await fetch(u);
+    if(!r.ok){alert("网络读取失败，链接异常或跨域限制");return;}
+    document.getElementById(taId).value=await r.text();
+  }catch(e){
+    alert("读取失败：浏览器跨域拦截，复制内容粘贴进来使用");
+  }
+}
+function fetchB64Remote(){fetchRemoteText('b64UrlInput','b64Txt')}
+function fetchGzipRemote(){fetchRemoteText('gzipUrlInput','gzipTxt')}
+function fetchAesRemote(){fetchRemoteText('aesUrlInput','aesTxt')}
+function fetchLvDouRemote(){fetchRemoteText('lvDouUrlInput','lvDouTxt')}
+async function copyText(textareaId){
+  const el=document.getElementById(textareaId);
+  const text=el.value.trim();
+  if(!text){alert("文本框内容为空，无法复制");return;}
+  try{
+    await navigator.clipboard.writeText(text);
+    alert("复制成功！");
+  }catch(e){
+    el.select();
+    document.execCommand("copy");
+    alert("复制成功！");
+  }
+}
+function readTextFile(fileDomId,textareaId){
+  const file=document.getElementById(fileDomId).files[0];
+  if(!file)return alert('请选择txt文件');
+  const reader=new FileReader();
+  reader.onload=e=>document.getElementById(textareaId).value=e.target.result;
+  reader.readAsText(file);
+}
+function saveTextToFile(textareaId,fileName="output.txt"){
+  const text=document.getElementById(textareaId).value;
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function readTxtFileToBox(){readTextFile('b64FileInput','b64Txt')}
+function saveBoxToTxt(){saveTextToFile('b64Txt','base64输出.txt')}
+function txtToB64(){const t=document.getElementById('b64Txt').value;document.getElementById('b64Txt').value=btoa(unescape(encodeURIComponent(t)));}
+function b64ToTxt(){const t=document.getElementById('b64Txt').value.trim();document.getElementById('b64Txt').value=decodeURIComponent(escape(atob(t)));}
+function readGzipTxt(){readTextFile('gzipFileInput','gzipTxt')}
+function saveGzipTxt(){saveTextToFile('gzipTxt','gzip输出.txt')}
+function txtGzipB64(){
+  if(!window.pako)return alert('请联网加载压缩库');
+  const buf=new TextEncoder().encode(document.getElementById('gzipTxt').value);
+  const zip=pako.gzip(buf);
+  document.getElementById('gzipTxt').value=btoa(String.fromCharCode(...zip));
+}
+function gzipB64Txt(){
+  if(!window.pako)return alert('请联网加载压缩库');
+  const raw=atob(document.getElementById('gzipTxt').value.trim());
+  const arr=Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+  const out=pako.ungzip(arr);
+  document.getElementById('gzipTxt').value=new TextDecoder().decode(out);
+}
+const aesTxt=document.getElementById('aesTxt');
+const aesKey=document.getElementById('aesKey');
+const aesIv=document.getElementById('aesIv');
+function readAesTxt(){readTextFile('aesFileInput','aesTxt')}
+function saveAesTxt(){saveTextToFile('aesTxt','aes输出.txt');}
+function padTo16Byte(str){return CryptoJS.enc.Utf8.parse(str.toString().padEnd(16,'0'));}
+function Encrypt(word,keyStr,ivStr){
+  const key=padTo16Byte(keyStr);
+  const iv=padTo16Byte(ivStr);
+  const encrypted=CryptoJS.AES.encrypt(word,key,{iv,padding:CryptoJS.pad.Pkcs7});
+  return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+}
+function Decrypt(word,keyStr,ivStr){
+  const key=padTo16Byte(keyStr);
+  const iv=padTo16Byte(ivStr);
+  const ciphertext=CryptoJS.enc.Hex.parse(word);
+  const decrypt=CryptoJS.AES.decrypt({ciphertext},key,{iv,padding:CryptoJS.pad.Pkcs7});
+  return decrypt.toString(CryptoJS.enc.Utf8);
+}
+function decryptAesBCB(encryptedData){
+  const prefixRaw="$#";
+  const suffixRaw="#$";
+  const prefixCode=CryptoJS.enc.Utf8.parse(prefixRaw).toString();
+  const suffixCode=CryptoJS.enc.Utf8.parse(suffixRaw).toString();
+  const dataArr=encryptedData.split("");
+  const suffixFull=suffixCode;
+  const pwdMixEndIdx=encryptedData.indexOf(suffixFull)+suffixFull.length;
+  const pwdMix=dataArr.splice(0,pwdMixEndIdx).join("");
+  const roundtimeHex=dataArr.splice(dataArr.length-26,26).join("");
+  const cipherHex=dataArr.join("");
+  const pwdHex=pwdMix.substring(prefixCode.length,pwdMix.length-suffixCode.length);
+  const roundTime=CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Hex.parse(roundtimeHex));
+  const realKey=CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Hex.parse(pwdHex));
+  const iv=padTo16Byte(roundTime);
+  const pk=padTo16Byte(realKey);
+  const cipherParams=CryptoJS.lib.CipherParams.create({ciphertext:CryptoJS.enc.Hex.parse(cipherHex)});
+  const dec=CryptoJS.AES.decrypt(cipherParams,pk,{iv,mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7});
+  return dec.toString(CryptoJS.enc.Utf8);
+}
+function toHex(str){return CryptoJS.enc.Hex.stringify(CryptoJS.enc.Utf8.parse(str));}
+function runAesEncrypt(){
+  const text=aesTxt.value.trim();
+  const key=aesKey.value;
+  if(!text){alert("请输入文本或上传文件");return;}
+  const timestamp=String(new Date().getTime());
+  aesIv.value=timestamp;
+  const aesHex=Encrypt(text,key,timestamp);
+  const keyWrapHex=toHex(`$#${key}#$`);
+  const ivHex=toHex(timestamp);
+  aesTxt.value=keyWrapHex+aesHex+ivHex;
+}
+function runAesDecrypt(){
+  const text=aesTxt.value.trim();
+  if(!text){alert("请输入文本或上传文件");return;}
+  try{
+    const plain=decryptAesBCB(text);
+    aesTxt.value=plain;
+  }catch(err){
+    alert("解密失败：密钥错误或密文格式不符");
+  }
+}
+const LVDOU_PREFIX="lvDou+";
+const DEFAULT_KEY="lvDou1234567890";
+const DEFAULT_IV="lvDou0987654321";
+const lvDouTxt=document.getElementById("lvDouTxt");
+const lvDouKeyInput=document.getElementById("lvDouKey");
+const lvDouIvInput=document.getElementById("lvDouIv");
+function readLvDouTxt(){readTextFile('lvDouFileInput','lvDouTxt')}
+function saveLvDouTxt(){saveTextToFile('lvDouTxt','lvDou输出.txt')}
+function lvDouPad16(str){return CryptoJS.enc.Utf8.parse(str.padEnd(16,'\0'));}
+function getLvDouKey(){const inputVal=lvDouKeyInput.value.trim();return inputVal?inputVal:DEFAULT_KEY;}
+function getLvDouIv(){const inputVal=lvDouIvInput.value.trim();return inputVal?inputVal:DEFAULT_IV;}
+function lvDouEncrypt(){
+  const plain=lvDouTxt.value.trim();
+  if(!plain)return alert("请输入待加密明文");
+  try{
+    const keyRaw=getLvDouKey();
+    const ivRaw=getLvDouIv();
+    const key=lvDouPad16(keyRaw);
+    const iv=lvDouPad16(ivRaw);
+    const cipherObj=CryptoJS.AES.encrypt(plain,key,{iv,mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7});
+    lvDouTxt.value=LVDOU_PREFIX+cipherObj.ciphertext.toString(CryptoJS.enc.Base64);
+  }catch(e){alert("加密失败："+e.message);}
+}
+function lvDouDecrypt(){
+  let cipherRaw=lvDouTxt.value.trim().replace(/\s/g,'');
+  if(!cipherRaw.startsWith(LVDOU_PREFIX))return alert("密文必须以 lvDou+ 开头");
+  try{
+    const b64Str=cipherRaw.slice(LVDOU_PREFIX.length);
+    const keyRaw=getLvDouKey();
+    const ivRaw=getLvDouIv();
+    const key=lvDouPad16(keyRaw);
+    const iv=lvDouPad16(ivRaw);
+    const cipherParams=CryptoJS.lib.CipherParams.create({ciphertext:CryptoJS.enc.Base64.parse(b64Str)});
+    const plain=CryptoJS.AES.decrypt(cipherParams,key,{iv,mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7}).toString(CryptoJS.enc.Utf8);
+    lvDouTxt.value=plain;
+  }catch(e){alert("解密失败：密文损坏/密钥IV不匹配");}
+}
+</script>
+</body>
+</html>
