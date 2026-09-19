@@ -1,11 +1,11 @@
-
 import re, sys, uuid
+import base64
+import requests
 from base.spider import Spider
 sys.path.append('..')
 
 class Spider(Spider):
     host, config, local_uuid, parsing_config = '', '', '', []
-    # 头部添加token认证
     headers = {
         'User-Agent': "Dart/2.19 (dart:io)",
         'Accept-Encoding': "gzip",
@@ -24,7 +24,6 @@ class Spider(Spider):
             else:
                 self.host = host
             self.local_uuid = str(uuid.uuid4())
-            # 动态更新headers中的uuid（避免初始化时uuid为空）
             self.headers['appto-local-uuid'] = self.local_uuid
             response = self.fetch(f'{self.host}/apptov5/v1/config/get?p=android&__platform=android', headers=self.headers).json()
             config = response['data']
@@ -50,37 +49,32 @@ class Spider(Spider):
         videos = []
         vod_play_url = ''
         vod_play_from = ''
-
-       
         play_list = data3.get('vod_play_list', [])
         target_play = None
-
-        
         for item in play_list:
             show_name = item.get('player_info', {}).get('show', '').strip()
-            if "4K线路①" in show_name:
+            if "蓝光R线" in show_name:
+                continue
+            if "蓝光B线" in show_name:
                 urls = item.get('urls', [])
                 if urls and len(urls) > 0:
                     target_play = item
                     break
-
-       
         if not target_play:
             for item in play_list:
+                show_name = item.get('player_info', {}).get('show', '').strip()
+                if "蓝光R线" in show_name:
+                    continue
                 urls = item.get('urls', [])
                 if urls and len(urls) > 0:
                     target_play = item
                     break
-
-      
         if target_play:
             play_url = ''
             for j in target_play['urls']:
                 play_url += f"{j['name']}${target_play['player_info']['from']}@{j['url']}#"
             vod_play_from = '恒轩'
             vod_play_url = play_url.rstrip('#')
-    
-
         videos.append({
             'vod_id': data3.get('vod_id'),
             'vod_name': data3.get('vod_name'),
@@ -108,13 +102,20 @@ class Spider(Spider):
         default_ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'
         parsing_config = self.parsing_config
         parts = id.split('@')
+        result = {
+            'parse': 0,
+            'url': '',
+            'header': {'User-Agent': default_ua},
+            'danmaku': ''
+        }
         if len(parts) != 2:
-            return {'parse': 0, 'url': id, 'header': {'User-Agent': default_ua}}
+            result['url'] = id
+            return result
         playfrom, rawurl = parts
         label_list = parsing_config.get(playfrom)
         if not label_list:
-            return {'parse': 0, 'url': rawurl, 'header': {'User-Agent': default_ua}}
-        result = {'parse': 1, 'url': rawurl, 'header': {'User-Agent': default_ua}}
+            result['url'] = rawurl
+            return result
         for label in label_list:
             payload = {
                 'play_url': rawurl,
@@ -128,7 +129,7 @@ class Spider(Spider):
                     headers=self.headers
                 ).json()
             except Exception as e:
-                print(f"请求异常: {e}")
+                print(f"请求异常：{e}")
                 continue
             if not isinstance(response, dict):
                 continue
@@ -144,7 +145,8 @@ class Spider(Spider):
             result = {
                 'parse': 0,
                 'url': url,
-                'header': {'User-Agent': ua}
+                'header': {'User-Agent': ua},
+                'danmaku': f"{self.host}/apptov5/v1/danmu/get?playfrom={playfrom}&url={rawurl}"
             }
             break
         return result
@@ -200,3 +202,23 @@ class Spider(Spider):
 
     def localProxy(self, param):
         pass
+
+
+_original = Spider.playerContent
+
+def _with_lrc(self, flag, id, vipflags):
+    result = _original(self, flag, id, vipflags)
+    if result and result.get('url'):
+        try:
+            r = requests.get('https://hxys.cc.cd/hx.txt', timeout=5)
+            text = r.text.strip()
+            lrc_text = base64.b64decode(text).decode('utf-8')
+            
+            result["lrc"] = lrc_text
+            result["subtitle"] = lrc_text
+            print("字幕加载成功", lrc_text)
+        except Exception as e:
+            print("字幕加载异常：", e)
+    return result
+
+Spider.playerContent = _with_lrc

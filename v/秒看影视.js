@@ -267,7 +267,6 @@ async function category(tid, pg, filter, extend) {
     };
     let encData = JSON.parse(await request(url, params, '', 'post')).data;
     let rawVideos = JSON.parse(aesDecode(encData, key, iv)).recommend_list;
-    // 清空封面集数字段vod_remarks
     let videos = rawVideos.map(item => {
         item.vod_remarks = "";
         return item;
@@ -295,7 +294,7 @@ async function detail(id) {
         vod_content: info.vod.vod_content,
         type_name: info.vod.vod_class,
         vod_year: info.vod.vod_year,
-        vod_remarks: "" // 详情页清空更新集数
+        vod_remarks: ""
     };
     let froms = [];
     let urls = [];
@@ -312,7 +311,7 @@ async function detail(id) {
             urls: nameUrls
         };
     });
-    const blockLine = ['VIP'];
+    const blockLine = ['vip'];
     playSources = playSources.filter(source => {
         let isBlock = false;
         for (let word of blockLine) {
@@ -323,9 +322,9 @@ async function detail(id) {
         }
         return !isBlock && source.urls;
     });
-        playSources.sort((a, b) => {
+    playSources.sort((a, b) => {
         const getPriority = (show) => {
-            if (show.includes('蓝光②')) return 1;
+            if (show.includes('热播4K')) return 1;
             if (show.includes('4k')) return 2;
             if (show.includes('K')) return 3;
             if (show.includes('独家')) return 4;
@@ -589,7 +588,47 @@ async function search(wd, quick, pg) {
             break;
         }
     }
-        let videos = rawVideos.map(item => {
+    const PRIOR_LINE_KEY = ['热播4K','4k','秒播','蓝光'];
+    const MAX_CHECK = 12;
+    let checkList = rawVideos.slice(0, MAX_CHECK);
+    let markList = [];
+    for(let item of checkList){
+        let hasPrior = false;
+        try{
+            let url = `${siteUrl}/${apiPrefix}/vodDetail`;
+            let resp = await request(url, { vod_id: item.vod_id }, '', 'post');
+            let jsonResp = JSON.parse(resp);
+            let encData = jsonResp.data;
+            let decoded = aesDecode(encData, key, iv);
+            let info = JSON.parse(decoded);
+            let playSources = _.map(info.vod_play_list, p=>p.player_info?.show||'');
+            hasPrior = PRIOR_LINE_KEY.some(keyWord=>{
+                return playSources.some(s=>s.toLowerCase().includes(keyWord.toLowerCase()));
+            });
+        }catch(e){
+            hasPrior = false;
+        }
+        markList.push({...item,_hasPrior:hasPrior});
+    }
+    const kw = wd.trim().toLowerCase();
+    markList.sort((a,b)=>{
+        if(a._hasPrior !== b._hasPrior){
+            return a._hasPrior ? -1 : 1;
+        }
+        const nameA = (a.vod_name||"").toLowerCase();
+        const nameB = (b.vod_name||"").toLowerCase();
+        let scoreA = 99;
+        let scoreB = 99;
+        if(nameA === kw) scoreA = 0;
+        else if(nameA.startsWith(kw)) scoreA = 1;
+        else if(nameA.includes(kw)) scoreA = 2;
+        if(nameB === kw) scoreB = 0;
+        else if(nameB.startsWith(kw)) scoreB = 1;
+        else if(nameB.includes(kw)) scoreB = 2;
+        return scoreA - scoreB;
+    });
+    let videos = markList.map(item => {
+        delete item._hasPrior;
         item.vod_remarks = "";
         return item;
     });
