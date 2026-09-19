@@ -45,7 +45,7 @@ class Spider(Spider):
     def _update_headers_for_host(self, host_url):
         self.host = host_url
         self.headers["Origin"] = host_url
-        自己。标头[“推荐人”]= ”{主机地址}/”
+        self.headers["Referer"] = f"{host_url}/"
         self.json_headers = {
             **self.headers,
             "Accept": "application/json, text/plain, */*",
@@ -625,16 +625,16 @@ class Spider(Spider):
 
     base_url = ''
 
-   def call_local_action(self, query, log_name):
-    for base in [self.base_url] if self.base_url else self.get_action_bases():
-        try:
-            url = f'{base}/action?{query}'
-            r = self.fetch(url, timeout=1)
-            if r.text.strip() == 'ok':
-                self.base_url = base
-                self.log(log_name)
-                return True
-        except:
-            continue
-    self.log(f'失败：{log_name}')
-    return False
+    def call_local_action(self, query, log_name):
+        for base in [self.base_url] if self.base_url else self.get_action_bases():
+            try:
+                url = f'{base}/action?{query}'
+                r = self.fetch(url, timeout=1)
+                if r.text.strip() == 'OK':
+                    self.base_url = base
+                    self.log(log_name)
+                    return True
+            except:
+                continue
+        self.log(f'失败: {log_name}')
+        return False
