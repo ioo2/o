@@ -43,7 +43,7 @@ var rule = {
                 url: it.file
             })
         });
-        VOD.vod_play_from = "bookan";
+        VOD.vod_play_from = "恒轩";
         VOD.vod_play_url = d.map(function(it) {
             return it.title + "$" + it.url
         }).join("#");
