@@ -479,7 +479,17 @@ class Spider:
                 audios = dash.get("audio", [])
                 if videos and audios:
                     sorted_videos = self._sort_video_tracks(videos)
-                    best_video = sorted_videos[0]
+                    best_video = None
+                    want_ids = [127,126,120,80]
+                    for qid in want_ids:
+                        for v in sorted_videos:
+                            if v.get("id") == qid:
+                                best_video = v
+                                break
+                        if best_video:
+                            break
+                    if not best_video:
+                        best_video = sorted_videos[0]
                     sorted_audios = sorted(audios, key=lambda x: x.get("id", 0), reverse=True)
                     best_audio = sorted_audios[0]
                     v_url = self._pick_url_for_mpd(best_video)
@@ -507,9 +517,9 @@ class Spider:
     def _sort_video_tracks(videos):
         def _prio(v):
             c = str(v.get("codecs", "")).lower()
-            if "hev" in c or "h265" in c or "hvc" in c:
-                return 0
             if "avc" in c or "h264" in c:
+                return 0
+            if "hev" in c or "h265" in c or "hvc" in c:
                 return 1
             if "av1" in c or "av01" in c:
                 return 2
