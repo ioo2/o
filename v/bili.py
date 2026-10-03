@@ -144,7 +144,7 @@ class _Http:
             return _Response(r.read().decode("utf-8", "replace"), r.status, dict(r.headers))
 class Spider:
     name = "B影视"
-    version = "3.0.4"
+    version = "3.0.5"
     host = API
     _QUALITY_MAP = [
         ("恒轩", [120,116,112,80]),
@@ -441,17 +441,6 @@ class Spider:
             aid, cid, eid = parts[0], parts[1], parts[2]
         elif len(parts) == 2:
             eid, cid = parts[0], parts[1]
-        if cid:
-            danmaku = f"https://comment.bilibili.com/{cid}.xml"
-        if not cid:
-            url = SITE
-            if eid and eid != "0":
-                url = "https://www.bilibili.com/bangumi/play/ep" + eid
-            elif aid and aid != "0":
-                url = "https://www.bilibili.com/video/av" + aid
-            elif bvid and bvid != "0":
-                url = "https://www.bilibili.com/video/" + bvid
-            return {"parse": 0, "url": url, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 1, "danmaku": danmaku}
         try:
             if bvid and bvid != "0":
                 api_url = "{}/x/player/playurl?bvid={}&cid={}&qn=127&fnver=0&fnval=4048&fourk=1".format(API, bvid, cid)
@@ -467,6 +456,8 @@ class Spider:
                 dash = result.get("dash", {})
                 videos = dash.get("video", [])
                 audios = dash.get("audio", [])
+                if cid:
+                    danmaku = f"https://comment.bilibili.com/{cid}.xml"
                 target_ids = self._QUALITY_FLAG_MAP.get(flag)
                 if target_ids and videos and audios:
                     mpd = self._generate_mpd(result, target_ids=target_ids)
