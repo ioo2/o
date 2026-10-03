@@ -163,7 +163,7 @@ class _Http:
 
 class Spider:
     name = "B影视"
-    version = "3.0.4"
+    version = "3.0.5"
     host = API
 
     def __init__(self):
@@ -477,23 +477,37 @@ class Spider:
                 dash = result.get("dash", {})
                 videos = dash.get("video", [])
                 audios = dash.get("audio", [])
+                dolby_audio = dash.get("dolby", {}).get("audio", [])
                 if videos and audios:
-                    sorted_videos = self._sort_video_tracks(videos)
                     best_video = None
-                    want_ids = [127,126,120,80]
-                    for qid in want_ids:
-                        for v in sorted_videos:
-                            if v.get("id") == qid:
+                    priority_qn = [127, 126]
+                    for qn in priority_qn:
+                        for v in videos:
+                            if v.get("id") == qn:
                                 best_video = v
                                 break
                         if best_video:
                             break
                     if not best_video:
-                        best_video = sorted_videos[0]
-                    sorted_audios = sorted(audios, key=lambda x: x.get("id", 0), reverse=True)
-                    best_audio = sorted_audios[0]
+                        for v in videos:
+                            if v.get("id") == 120:
+                                best_video = v
+                                break
+                    if not best_video:
+                        for v in videos:
+                            if v.get("id") == 80:
+                                best_video = v
+                                break
+                    if not best_video:
+                        best_video = videos[0]
+                    final_audio = None
+                    if dolby_audio and len(dolby_audio) > 0:
+                        final_audio = dolby_audio[0]
+                    else:
+                        sorted_audios = sorted(audios, key=lambda x: x.get("id", 0), reverse=True)
+                        final_audio = sorted_audios[0]
                     v_url = self._pick_url_for_mpd(best_video)
-                    a_url = self._pick_url_for_mpd(best_audio, is_audio=True)
+                    a_url = self._pick_url_for_mpd(final_audio, is_audio=True)
                     if v_url and a_url:
                         danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(raw, safe="")
                         return {"parse": 0, "url": v_url + "#" + a_url, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 0, "danmaku": danmaku}
@@ -512,26 +526,6 @@ class Spider:
             url = "https://www.bilibili.com/video/" + bvid
         danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(url, safe="")
         return {"parse": 0, "url": url, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 1, "danmaku": danmaku}
-
-    @staticmethod
-    def _sort_video_tracks(videos):
-        def _prio(v):
-            c = str(v.get("codecs", "")).lower()
-            if "avc" in c or "h264" in c:
-                return 0
-            if "hev" in c or "h265" in c or "hvc" in c:
-                return 1
-            if "av1" in c or "av01" in c:
-                return 2
-            return 3
-        groups = {}
-        for v in videos:
-            vid = v.get("id", 0)
-            groups.setdefault(vid, []).append(v)
-        out = []
-        for vid in sorted(groups.keys(), reverse=True):
-            out.extend(sorted(groups[vid], key=_prio))
-        return out
 
     @staticmethod
     def _pick_url_for_mpd(item, is_audio=False):
