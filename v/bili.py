@@ -144,7 +144,7 @@ class _Http:
             return _Response(r.read().decode("utf-8", "replace"), r.status, dict(r.headers))
 class Spider:
     name = "B影视"
-    version = "3.0.3"
+    version = "3.0.4"
     host = API
     _QUALITY_MAP = [
         ("恒轩", [120,116,112,80]),
@@ -572,16 +572,14 @@ class Spider:
             duration_sec = 3600
         dur_str = "PT{}S".format(duration_sec)
         all_videos = self._sort_video_tracks(videos)
+        video_list = []
         if target_ids:
-            filtered = []
             for want_id in target_ids:
                 for v in all_videos:
                     if v.get("id") == want_id:
-                        filtered.append(v)
+                        video_list.append(v)
                         break
-            if filtered:
-                video_list = filtered
-            else:
+            if not video_list:
                 video_list = all_videos[:1]
         else:
             video_list = all_videos
