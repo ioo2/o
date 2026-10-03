@@ -147,10 +147,10 @@ class Spider:
     version = "3.0.2"
     host = API
     _QUALITY_MAP = [
-        ("恒轩", [120,116,112,80]),
+        ("恒轩", [120]),
     ]
     _QUALITY_FLAG_MAP = {
-        "恒轩": [120,116,112,80],
+        "恒轩": [120],
     }
     def __init__(self):
         self.extend = ""
@@ -572,16 +572,13 @@ class Spider:
         dur_str = "PT{}S".format(duration_sec)
         all_videos = self._sort_video_tracks(videos)
         if target_ids:
-            filtered = []
-            for want_id in target_ids:
-                for v in all_videos:
-                    if v.get("id") == want_id:
-                        filtered.append(v)
-                        break
+            target_set = set(target_ids)
+            filtered = [v for v in all_videos if v.get("id") in target_set]
             if filtered:
                 video_list = filtered
             else:
-                video_list = all_videos[:1]
+                highest_id = all_videos[0].get("id", 0) if all_videos else 0
+                video_list = [v for v in all_videos if v.get("id") == highest_id] or all_videos[:1]
         else:
             video_list = all_videos
         top_video = video_list[0] if video_list else {}
