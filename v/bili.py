@@ -6,7 +6,6 @@ import re
 import time
 import hashlib
 import base64
-import uuid
 import urllib.parse
 try:
     import requests
@@ -163,7 +162,7 @@ class _Http:
 
 class Spider:
     name = "B影视"
-    version = "3.0.5"
+    version = "3.0.7"
     host = API
 
     def __init__(self):
@@ -477,10 +476,9 @@ class Spider:
                 dash = result.get("dash", {})
                 videos = dash.get("video", [])
                 audios = dash.get("audio", [])
-                dolby_audio = dash.get("dolby", {}).get("audio", [])
                 if videos and audios:
                     best_video = None
-                    priority_qn = [127, 126]
+                    priority_qn = [120, 80]
                     for qn in priority_qn:
                         for v in videos:
                             if v.get("id") == qn:
@@ -489,25 +487,11 @@ class Spider:
                         if best_video:
                             break
                     if not best_video:
-                        for v in videos:
-                            if v.get("id") == 120:
-                                best_video = v
-                                break
-                    if not best_video:
-                        for v in videos:
-                            if v.get("id") == 80:
-                                best_video = v
-                                break
-                    if not best_video:
                         best_video = videos[0]
-                    final_audio = None
-                    if dolby_audio and len(dolby_audio) > 0:
-                        final_audio = dolby_audio[0]
-                    else:
-                        sorted_audios = sorted(audios, key=lambda x: x.get("id", 0), reverse=True)
-                        final_audio = sorted_audios[0]
+                    sorted_audios = sorted(audios, key=lambda x: x.get("id", 0), reverse=True)
+                    best_audio = sorted_audios[0]
                     v_url = self._pick_url_for_mpd(best_video)
-                    a_url = self._pick_url_for_mpd(final_audio, is_audio=True)
+                    a_url = self._pick_url_for_mpd(best_audio, is_audio=True)
                     if v_url and a_url:
                         danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(raw, safe="")
                         return {"parse": 0, "url": v_url + "#" + a_url, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 0, "danmaku": danmaku}
