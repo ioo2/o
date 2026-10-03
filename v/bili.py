@@ -144,7 +144,7 @@ class _Http:
             return _Response(r.read().decode("utf-8", "replace"), r.status, dict(r.headers))
 class Spider:
     name = "B影视"
-    version = "3.0.5"
+    version = "3.0.2"
     host = API
     _QUALITY_MAP = [
         ("恒轩", [120,116,112,80]),
@@ -432,7 +432,9 @@ class Spider:
             raw = str(ids)
         danmaku = ""
         if raw.startswith("http"):
-            return {"parse": 0, "url": raw, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 1, "danmaku": danmaku}
+            url = raw
+            danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(url, safe="")
+            return {"parse": 0, "url": url, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 1, "danmaku": danmaku}
         parts = raw.split("_")
         aid = cid = eid = bvid = ""
         if len(parts) >= 4:
@@ -441,6 +443,8 @@ class Spider:
             aid, cid, eid = parts[0], parts[1], parts[2]
         elif len(parts) == 2:
             eid, cid = parts[0], parts[1]
+        if not cid:
+            return {"parse": 0, "url": raw, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 1, "danmaku": danmaku}
         try:
             if bvid and bvid != "0":
                 api_url = "{}/x/player/playurl?bvid={}&cid={}&qn=127&fnver=0&fnval=4048&fourk=1".format(API, bvid, cid)
@@ -456,29 +460,32 @@ class Spider:
                 dash = result.get("dash", {})
                 videos = dash.get("video", [])
                 audios = dash.get("audio", [])
-                if cid:
-                    danmaku = f"https://comment.bilibili.com/{cid}.xml"
                 target_ids = self._QUALITY_FLAG_MAP.get(flag)
                 if target_ids and videos and audios:
                     mpd = self._generate_mpd(result, target_ids=target_ids)
                     if mpd:
                         mpd_b64 = base64.b64encode(mpd.encode("utf-8")).decode("ascii")
+                        danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(raw, safe="")
                         return {"parse": 0, "url": "data:application/dash+xml;base64," + mpd_b64, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 0, "danmaku": danmaku}
                     mpd_fb = self._generate_mpd(result, target_ids=None)
                     if mpd_fb:
                         mpd_b64 = base64.b64encode(mpd_fb.encode("utf-8")).decode("ascii")
+                        danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(raw, safe="")
                         return {"parse": 0, "url": "data:application/dash+xml;base64," + mpd_b64, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 0, "danmaku": danmaku}
                     durl = result.get("durl", [])
                     if durl and durl[0].get("url"):
+                        danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(raw, safe="")
                         return {"parse": 0, "url": durl[0]["url"], "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 0, "danmaku": danmaku}
                 else:
                     if videos and audios:
                         mpd = self._generate_mpd(result, target_ids=None)
                         if mpd:
                             mpd_b64 = base64.b64encode(mpd.encode("utf-8")).decode("ascii")
+                            danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(raw, safe="")
                             return {"parse": 0, "url": "data:application/dash+xml;base64," + mpd_b64, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 0, "danmaku": danmaku}
                     durl = result.get("durl", [])
                     if durl and durl[0].get("url"):
+                        danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(raw, safe="")
                         return {"parse": 0, "url": durl[0]["url"], "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 0, "danmaku": danmaku}
         except Exception:
             pass
@@ -489,6 +496,7 @@ class Spider:
             url = "https://www.bilibili.com/video/av" + aid
         elif bvid and bvid != "0":
             url = "https://www.bilibili.com/video/" + bvid
+        danmaku = "http://121.41.93.205/dm.php?url=" + urllib.parse.quote(url, safe="")
         return {"parse": 0, "url": url, "header": {"User-Agent": UA, "Referer": SITE + "/", "Cookie": self.cookie}, "jx": 1, "danmaku": danmaku}
     @staticmethod
     def _fix_mcdn_urls(video_tracks, all_videos, all_audios):
@@ -563,14 +571,16 @@ class Spider:
             duration_sec = 3600
         dur_str = "PT{}S".format(duration_sec)
         all_videos = self._sort_video_tracks(videos)
-        video_list = []
         if target_ids:
+            filtered = []
             for want_id in target_ids:
                 for v in all_videos:
                     if v.get("id") == want_id:
-                        video_list.append(v)
+                        filtered.append(v)
                         break
-            if not video_list:
+            if filtered:
+                video_list = filtered
+            else:
                 video_list = all_videos[:1]
         else:
             video_list = all_videos
