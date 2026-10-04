@@ -33,7 +33,9 @@ function mapItem(it) {
     v.vod_id = String(it.vod_id != null ? it.vod_id : '');
     v.vod_name = String(it.vod_name || '').trim();
     v.vod_pic = it.vod_pic || '';
-    v.vod_remarks = it.vod_remarks || '';
+    let remark = String(it.vod_remarks || '');
+    remark = remark.replace(/4K更新/g,'').replace(/更新/g,'');
+    v.vod_remarks = remark;
     return v;
 }
 function splitEpisodeList(playStr) {
@@ -268,6 +270,7 @@ async function home() {
     if (cat) classes.unshift({ type_id: 'home', type_name: '首页' });
 
     const nameMap = {
+        "首页": "首页",
         "最新电影": "电影",
         "热播国剧": "电视剧",
         "国漫": "动漫",
@@ -354,7 +357,7 @@ async function detail(id) {
         const yr = parseInt(d.vod_year);
         vod.vod_year = isNaN(yr) ? '' : yr;
         vod.vod_class = d.vod_class || '';
-        vod.vod_remarks = d.vod_remarks || '';
+        vod.vod_remarks = String(d.vod_remarks || '');
         vod._innerLines = [];
         if (Array.isArray(d.vod_url_with_player) && d.vod_url_with_player.length) {
             const needKey = d.vod_url_with_player.some(it => it && String(it.url || '').indexOf('lvdou+') >= 0);
