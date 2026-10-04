@@ -266,8 +266,23 @@ async function home() {
         }
     }
     if (cat) classes.unshift({ type_id: 'home', type_name: '首页' });
+
+    const nameMap = {
+        "最新电影": "电影",
+        "热播国剧": "电视剧",
+        "国漫": "动漫",
+        "国综": "综艺"
+    };
+    let filteredClasses = classes.filter(item => nameMap.hasOwnProperty(item.type_name));
+    filteredClasses = filteredClasses.map(item => {
+        return {
+            type_id: item.type_id,
+            type_name: nameMap[item.type_name]
+        }
+    });
+
     const filters = buildFilters(j && j.list);
-    return JSON.stringify({ class: classes, filters: filters });
+    return JSON.stringify({ class: filteredClasses, filters: filters });
 }
 async function homeVod() {
     const j = await getIndex();
