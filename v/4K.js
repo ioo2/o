@@ -44,11 +44,14 @@ function splitEpisodeList(playStr) {
     const eps = s.split('#');
     for (const ep of eps) {
         const p = ep.indexOf('$');
-        if (p < 0) {
-            epsOut.push({ epName: '', rawUrl: ep });
-        } else {
-            epsOut.push({ epName: ep.slice(0, p), rawUrl: ep.slice(p + 1) });
+        let epName = '';
+        let rawUrl = ep;
+        if (p > 0) {
+            epName = ep.slice(0, p);
+            rawUrl = ep.slice(p + 1);
         }
+        epName = epName.replace(/-?4K|-?蓝光/g, '');
+        epsOut.push({ epName: epName, rawUrl: rawUrl });
     }
     return epsOut;
 }
@@ -161,16 +164,8 @@ function decUrlOne(u) {
     return s;
 }
 function decPlayUrl(raw) {
-    let s = String(raw || '').replace(/#+$/, '');
-    if (!s) return '';
-    const eps = s.split('#');
-    const out = [];
-    for (const ep of eps) {
-        const p = ep.indexOf('$');
-        if (p < 0) { out.push(decUrlOne(ep)); continue; }
-        out.push(ep.slice(0, p + 1) + decUrlOne(ep.slice(p + 1)));
-    }
-    return out.join('#');
+    const epList = splitEpisodeList(raw);
+    return joinEpisodeList(epList);
 }
 const DEC_PREFIX = 'https://baidu.con/';
 function findUrl(j) {
@@ -357,7 +352,9 @@ async function detail(id) {
         const yr = parseInt(d.vod_year);
         vod.vod_year = isNaN(yr) ? '' : yr;
         vod.vod_class = d.vod_class || '';
-        vod.vod_remarks = String(d.vod_remarks || '');
+        let dr = String(d.vod_remarks || '');
+        dr = dr.replace(/4K|蓝光|更新/g, '').replace(/\s+/g, ' ').trim();
+        vod.vod_remarks = dr;
         vod._innerLines = [];
         if (Array.isArray(d.vod_url_with_player) && d.vod_url_with_player.length) {
             const needKey = d.vod_url_with_player.some(it => it && String(it.url || '').indexOf('lvdou+') >= 0);
