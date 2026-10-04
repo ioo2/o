@@ -345,7 +345,7 @@ async function detail(id) {
             for(const item of d.vod_url_with_player){
                 const nameRaw = String((item.name||'') + (item.code||'')).toLowerCase();
                 const urlRaw = String(item.url||'');
-                if(urlRaw && urlRaw.trim() && urlRaw.split('#').length>1 && nameRaw.includes("联通云")){
+                if(urlRaw && urlRaw.trim() && nameRaw.includes("联通云")){
                     targetItem = item;
                     break;
                 }
@@ -353,7 +353,7 @@ async function detail(id) {
             if(!targetItem){
                 for(const item of d.vod_url_with_player){
                     const urlRaw = String(item.url||'');
-                    if(urlRaw && urlRaw.trim() && urlRaw.split('#').length>1){
+                    if(urlRaw && urlRaw.trim()){
                         targetItem = item;
                         break;
                     }
