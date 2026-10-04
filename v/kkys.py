@@ -156,7 +156,7 @@ class Spider(BaseSpider):
                    "My00NzU1LWJmMWItZmU1NmQyOGM2MGU4IiwiZ2FpZCI6IiJ9")
     DISCLAIMER = ("")
     CHANNELS = [
-        ("6", "短剧"), ("2", "电视剧"), ("3", "动漫"), ("1", "电影"), ("4", "综艺"),
+        ("6", "短剧"), ("2", "剧集"), ("3", "动漫"), ("1", "电影"), ("4", "综艺"),
     ]
 
     def init(self, extend=""):
