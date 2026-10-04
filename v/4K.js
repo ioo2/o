@@ -34,7 +34,7 @@ function mapItem(it) {
     v.vod_name = String(it.vod_name || '').trim();
     v.vod_pic = it.vod_pic || '';
     let remark = String(it.vod_remarks || '');
-    remark = remark.replace(/4K更新/g,'').replace(/更新/g,'');
+    remark = remark.replace(/4K|蓝光|更新/g, '').replace(/\s+/g, ' ').trim();
     v.vod_remarks = remark;
     return v;
 }
