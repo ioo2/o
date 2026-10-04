@@ -12,16 +12,16 @@ const C = {
     playCache: {},
     size: 12,
     searchSize: 10,
-    homeCount: 60,
+    homeCount: 60
 };
 const H = {
     'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
     'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'zh-CN,zh;q=0.9',
+    'Accept-Language': 'zh-CN,zh;q=0.9'
 };
 const PH = {
     'User-Agent': 'okhttp/4.12.0',
-    'Accept-Encoding': 'identity',
+    'Accept-Encoding': 'identity'
 };
 function parseExt(s) {
     if (!s) return {};
@@ -35,6 +35,23 @@ function mapItem(it) {
     v.vod_pic = it.vod_pic || '';
     v.vod_remarks = it.vod_remarks || '';
     return v;
+}
+function splitEpisodeList(playStr) {
+    const s = String(playStr || '').replace(/#+$/, '');
+    const epsOut = [];
+    const eps = s.split('#');
+    for (const ep of eps) {
+        const p = ep.indexOf('$');
+        if (p < 0) {
+            epsOut.push({ epName: '', rawUrl: ep });
+        } else {
+            epsOut.push({ epName: ep.slice(0, p), rawUrl: ep.slice(p + 1) });
+        }
+    }
+    return epsOut;
+}
+function joinEpisodeList(epList) {
+    return epList.map(e => (e.epName || '') + '$' + e.rawUrl).join('#');
 }
 async function getApi(path, pairs) {
     let q = '';
@@ -66,9 +83,9 @@ async function getNav() {
 }
 const FILTER_DEFS = [
     { key: 'class', name: '类型' },
-    { key: 'area',  name: '地区' },
-    { key: 'lang',  name: '语言' },
-    { key: 'year',  name: '年份' },
+    { key: 'area', name: '地区' },
+    { key: 'lang', name: '语言' },
+    { key: 'year', name: '年份' }
 ];
 function strToFilter(str) {
     const items = (str || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -125,8 +142,7 @@ async function ensureKey() {
             const k = pickMaccmsKey(plain);
             if (k) C.key = k;
         }
-    } catch (e) {
-    }
+    } catch (e) { }
     return C.key;
 }
 function decUrlOne(u) {
@@ -139,8 +155,7 @@ function decUrlOne(u) {
     try {
         const d = aesX('AES/CBC/PKCS7', false, cipher, true, k, iv, false);
         if (d && d.indexOf('http') === 0) return d.trim();
-    } catch (e) {
-    }
+    } catch (e) { }
     return s;
 }
 function decPlayUrl(raw) {
@@ -205,7 +220,7 @@ function pickParses(raw) {
     const pm = C.parseMap;
     if (typeof pm === 'string') return [normParseBase(pm)];
     if (!pm || typeof pm !== 'object') return [];
-    const host = (String(raw).match(/^https?:\/\/([^\/?#]+)/i) || [,''])[1].toLowerCase();
+    const host = (String(raw).match(/^https?:\/\/([^\/?#]+)/i) || [, ''])[1].toLowerCase();
     const hits = [];
     let fallback = null;
     for (const key in pm) {
@@ -241,29 +256,17 @@ async function init(cfg) {
 }
 async function home() {
     const j = await getNav();
-    const rawList = j && Array.isArray(j.list) ? j.list : [];
-    const mapRule = {
-        "最新电影": "电影",
-        "热播国剧": "电视剧",
-        "国漫": "动漫",
-        "国综": "综艺"
-    };
     const classes = [];
-    for (const c of rawList) {
-        if (!c || c.type_id == null) continue;
-        const origName = String(c.type_name || '').trim();
-        if(!mapRule.hasOwnProperty(origName)) continue;
-        classes.push({
-            type_id: String(c.type_id),
-            type_name: mapRule[origName]
-        });
+    if (j && Array.isArray(j.list)) {
+        for (let i = 0; i < j.list.length; i++) {
+            const c = j.list[i];
+            if (c && c.type_id != null) {
+                classes.push({ type_id: String(c.type_id), type_name: String(c.type_name || '') });
+            }
+        }
     }
     if (cat) classes.unshift({ type_id: 'home', type_name: '首页' });
-    const filterRawList = rawList.filter(x=>{
-        const n = String(x.type_name||'').trim();
-        return mapRule.hasOwnProperty(n);
-    });
-    const filters = buildFilters(filterRawList);
+    const filters = buildFilters(j && j.list);
     return JSON.stringify({ class: classes, filters: filters });
 }
 async function homeVod() {
@@ -337,37 +340,32 @@ async function detail(id) {
         vod.vod_year = isNaN(yr) ? '' : yr;
         vod.vod_class = d.vod_class || '';
         vod.vod_remarks = d.vod_remarks || '';
-        let selectUrl = '';
+        vod._innerLines = [];
         if (Array.isArray(d.vod_url_with_player) && d.vod_url_with_player.length) {
             const needKey = d.vod_url_with_player.some(it => it && String(it.url || '').indexOf('lvdou+') >= 0);
             if (needKey) await ensureKey();
-            let targetItem = null;
-            for(const item of d.vod_url_with_player){
-                const nameRaw = String((item.name||'') + (item.code||'')).toLowerCase();
-                const urlRaw = String(item.url||'');
-                if(urlRaw && urlRaw.trim() && nameRaw.includes("联通云")){
-                    targetItem = item;
-                    break;
-                }
+            for (const it of d.vod_url_with_player) {
+                if (!it) continue;
+                const nm = it.name != null ? String(it.name) : '';
+                const cd = it.code != null ? String(it.code) : '';
+                const rawUrl = decPlayUrl(it.url != null ? it.url : '');
+                vod._innerLines.push({ name: nm, code: cd, url: rawUrl });
             }
-            if(!targetItem){
-                for(const item of d.vod_url_with_player){
-                    const urlRaw = String(item.url||'');
-                    if(urlRaw && urlRaw.trim()){
-                        targetItem = item;
-                        break;
-                    }
-                }
-            }
-            if(targetItem){
-                selectUrl = decPlayUrl(targetItem.url != null ? targetItem.url : '');
-            }
-        }else{
+            const firstLine = vod._innerLines[0];
+            vod.vod_play_from = "恒轩";
+            vod.vod_play_url = firstLine ? firstLine.url : "";
+        } else {
             if (String(d.vod_play_url || '').indexOf('lvdou+') >= 0) await ensureKey();
-            selectUrl = decPlayUrl(d.vod_play_url||'');
+            const fromRaw = String(d.vod_play_from || '');
+            const urlRaw = String(d.vod_play_url || '');
+            const fromArr = fromRaw.split('$$$');
+            const urlArr = urlRaw.split('$$$');
+            for(let idx=0;idx<fromArr.length;idx++){
+                vod._innerLines.push({name:fromArr[idx],code:'',url:decPlayUrl(urlArr[idx]||'')});
+            }
+            vod.vod_play_from = "恒轩";
+            vod.vod_play_url = vod._innerLines.length>0 ? vod._innerLines[0].url : "";
         }
-        vod.vod_play_from = "恒轩";
-        vod.vod_play_url = selectUrl;
         list.push(vod);
     }
     return JSON.stringify({ list: list });
@@ -379,33 +377,78 @@ function sleep(ms) {
     return new Promise(resolve => { try { setTimeout(resolve, ms); } catch (e) { resolve(); } });
 }
 async function play(flag, id, flags) {
-    const raw = String(id || '').trim();
-    let url = '';
-    if (!raw) return JSON.stringify({ parse: 0, url: '', header: PH });
-    try {
-        const hit = C.playCache[raw];
+    const rawInput = String(id || '').trim();
+    if (!flags || !flags._innerLines || !Array.isArray(flags._innerLines)) {
+        let url = '';
+        const cacheKey = rawInput;
+        const hit = C.playCache[cacheKey];
         if (hit && hit.url && (Date.now() - hit.ts) < PLAY_CACHE_TTL) {
             return JSON.stringify({ parse: 0, url: hit.url, header: PH });
         }
-        const bases = pickParses(raw);
-        if (!bases.length) return JSON.stringify({ parse: 0, url: '', header: PH });
-        for (let round = 0; round < PLAY_ROUNDS && !url; round++) {
-            if (round > 0) await sleep(round * PLAY_BACKOFF);
-            for (let i = 0; i < bases.length; i++) {
-                try {
-                    const resp = await req(bases[i] + encodeURIComponent(raw), { headers: PH });
-                    if (resp && resp.content) {
-                        const u = resolveParse(resp.content);
-                        if (u && u.indexOf('http') === 0) { url = u; break; }
-                    }
-                } catch (e) {
+        const bases = pickParses(rawInput);
+        if (bases.length > 0) {
+            for (let round = 0; round < PLAY_ROUNDS && !url; round++) {
+                if (round > 0) await sleep(round * PLAY_BACKOFF);
+                for (let i = 0; i < bases.length; i++) {
+                    try {
+                        const resp = await req(bases[i] + encodeURIComponent(rawInput), { headers: PH });
+                        if (resp && resp.content) {
+                            const u = resolveParse(resp.content);
+                            if (u && u.indexOf('http') === 0) { url = u; break; }
+                        }
+                    } catch (e) { }
                 }
             }
         }
-        if (url) C.playCache[raw] = { url: url, ts: Date.now() };
-    } catch (e) {
+        if(url) C.playCache[cacheKey]={url:url,ts:Date.now()};
+        return JSON.stringify({ parse:0, url:url||'', header:PH });
     }
-    return JSON.stringify({ parse: 0, url: url || '', header: PH });
+    const innerLines = [...flags._innerLines];
+    let priorityList = [];
+    let backupList = [];
+    for(const line of innerLines){
+        const fullName = (line.name||'') + '-' + (line.code||'');
+        if(fullName.includes("联通云")){
+            priorityList.push(line);
+        }else{
+            backupList.push(line);
+        }
+    }
+    const tryLines = priorityList.concat(backupList);
+    let finalUrl = '';
+    for(const line of tryLines){
+        if(!line.url) continue;
+        const eps = splitEpisodeList(line.url);
+        const targetEp = eps.find(x=>x.rawUrl === rawInput);
+        if(!targetEp) continue;
+        const cacheKey = rawInput;
+        const hit = C.playCache[cacheKey];
+        if (hit && hit.url && (Date.now() - hit.ts) < PLAY_CACHE_TTL) {
+            finalUrl = hit.url;
+            break;
+        }
+        const bases = pickParses(targetEp.rawUrl);
+        if(!bases.length) continue;
+        let tmpUrl = '';
+        for (let round = 0; round < PLAY_ROUNDS && !tmpUrl; round++) {
+            if (round > 0) await sleep(round * PLAY_BACKOFF);
+            for (let i = 0; i < bases.length; i++) {
+                try {
+                    const resp = await req(bases[i] + encodeURIComponent(targetEp.rawUrl), { headers: PH });
+                    if (resp && resp.content) {
+                        const u = resolveParse(resp.content);
+                        if (u && u.indexOf('http') === 0) { tmpUrl = u; break; }
+                    }
+                } catch (e) { }
+            }
+        }
+        if(tmpUrl){
+            finalUrl = tmpUrl;
+            C.playCache[cacheKey]={url:finalUrl,ts:Date.now()};
+            break;
+        }
+    }
+    return JSON.stringify({ parse:0, url:finalUrl||'', header:PH });
 }
 export function __jsEvalReturn() {
     return {
@@ -416,6 +459,6 @@ export function __jsEvalReturn() {
         categoryContent: category,
         search: search,
         detail: detail,
-        play: play,
+        play: play
     };
 }
