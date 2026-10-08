@@ -75,11 +75,7 @@
       color: #8b949e;
       margin-bottom: 12px;
       font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
-    .hint-tap { font-size: 12px; color: #58a6ff; font-weight: normal; }
     .spoiler-container {
       position: relative;
       background: #161b22;
@@ -149,6 +145,7 @@
       font-size: 14px;
       line-height: 1.4;
       color: #c9d1d9;
+      align-items: center;
     }
     .step-num {
       width: 32px;
@@ -169,7 +166,6 @@
       justify-content: center;
       margin-top:22px;
     }
-
     .download-row a {
       color:#79c0ff;
       font-size:14px;
@@ -222,10 +218,6 @@
        <a href="https://hxys.cc.cd/o" target="_blank">恒轩影视</a>
     </div>
     <div class="box">
-      <div class="box-title">
-        <span></span>
-        <span id="hintText" class="hint-tap">已开启私密保护</span>
-      </div>
       <div class="spoiler-container" id="spoilerBox" onclick="toggleSpoiler()">
         <div class="spoiler-overlay" id="spoilerMask"></div>
         <div class="url-text" id="subUrl">https://hxys.cc.cd/c</div>
@@ -255,32 +247,19 @@
     <div class="link-grid">
       <a href="https://www.kankanya.me/" target="_blank">看鸭影视</a>
       <a href="https://juok3.top/" target="_blank">剧吧影视</a>
-      <a href="https://kanju17.com/" target="_blank">看剧影视</a>
+      <a href="kanju17.com/" target="_blank">看剧影视</a>
       <a href="https://www.kkys01.com/" target="_blank">可可影视</a>
     </div>
   </div>
 <script>
     function toggleSpoiler() {
       const box = document.getElementById('spoilerBox');
-      const hint = document.getElementById('hintText');
       box.classList.toggle('revealed');
-      if (box.classList.contains('revealed')) {
-        hint.innerText = "已解锁明文显示";
-        hint.style.color = "#3fb950";
-      } else {
-        hint.innerText = "已开启私密保护";
-        hint.style.color = "#58a6ff";
-      }
     }
-
     async function copyUrl() {
       const url = document.getElementById('subUrl').innerText;
       document.getElementById('spoilerBox').classList.add('revealed');
-      document.getElementById('hintText').innerText = "已解锁明文显示";
-      document.getElementById('hintText').style.color = "#3fb950";
-
       let copySuccess = false;
-   
       if (navigator.clipboard && window.isSecureContext) {
         try {
           await navigator.clipboard.writeText(url);
@@ -289,7 +268,6 @@
           copySuccess = false;
         }
       }
-     
       if(!copySuccess){
         const textarea = document.createElement('textarea');
         textarea.style.position = 'fixed';
@@ -305,7 +283,6 @@
         }
         document.body.removeChild(textarea);
       }
-
       if(copySuccess){
         alert('✅ 接口地址已成功复制到剪贴板！');
       }else{
