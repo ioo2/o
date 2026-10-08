@@ -169,17 +169,18 @@
       justify-content: center;
       margin-top:22px;
     }
+
     .download-row a {
-      color:#87a0c2;
+      color:#79c0ff;
       font-size:14px;
       text-decoration:none;
       border:1px solid var(--border);
       padding:4px 10px;
       border-radius:6px;
-      opacity:0.72;
+      opacity:0.9;
       transition:0.2s;
     }
-    .download-row a:hover{opacity:1;}
+    .download-row a:hover{opacity:1;color:#a0d4ff;}
     .link-title-wrap{
       display:block;
       width:100%;
@@ -222,7 +223,9 @@
     </div>
     <div class="box">
       <div class="box-title">
-          </div>
+        <span></span>
+        <span id="hintText" class="hint-tap">已开启私密保护</span>
+      </div>
       <div class="spoiler-container" id="spoilerBox" onclick="toggleSpoiler()">
         <div class="spoiler-overlay" id="spoilerMask"></div>
         <div class="url-text" id="subUrl">https://hxys.cc.cd/c</div>
@@ -269,16 +272,45 @@
         hint.style.color = "#58a6ff";
       }
     }
-    function copyUrl() {
+
+    async function copyUrl() {
       const url = document.getElementById('subUrl').innerText;
       document.getElementById('spoilerBox').classList.add('revealed');
       document.getElementById('hintText').innerText = "已解锁明文显示";
       document.getElementById('hintText').style.color = "#3fb950";
-      navigator.clipboard.writeText(url).then(() => {
+
+      let copySuccess = false;
+   
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(url);
+          copySuccess = true;
+        } catch (e) {
+          copySuccess = false;
+        }
+      }
+     
+      if(!copySuccess){
+        const textarea = document.createElement('textarea');
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        textarea.style.opacity = '0.01';
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try{
+          copySuccess = document.execCommand('copy');
+        }catch(err){
+          copySuccess = false;
+        }
+        document.body.removeChild(textarea);
+      }
+
+      if(copySuccess){
         alert('✅ 接口地址已成功复制到剪贴板！');
-      }).catch(() => {
+      }else{
         alert('❌ 复制失败，请手动长按链接复制！');
-      });
+      }
     }
 </script>
 </body>
