@@ -251,10 +251,6 @@ class Spider(BaseSpider):
     def _brand_block(self):
         return '\n'.join([
             ' ',
-            ' ',
-            '当前主站：' + self.host,
-            '━' * 28,
-            '━' * 7,
         ])
 
     def _parse_text_posts(self, text):
