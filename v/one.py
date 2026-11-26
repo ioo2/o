@@ -885,10 +885,10 @@ class Spider(BaseSpider):
         preview_only = _is_preview_only(a)
         dl = mp4_urls(a.get("video_download"))
         if dl:
-            groups.append({"kind": "dl", "name": "完整版 MP4", "urls": dl})
+            groups.append({"kind": "dl", "name": " ", "urls": dl})
         vf = mp4_urls(a.get("video_file"))
         if vf and str(a.get("video_file")) != str(a.get("video_download") or ""):
-            groups.append({"kind": "file", "name": "预告 MP4" if preview_only else "高清 MP4", "urls": vf})
+            groups.append({"kind": "file", "name": "预告 MP4" if preview_only else " ", "urls": vf})
         if (not dl and not vf) or preview_only:
             if a.get("video_hls"):
                 groups.append({"kind": "hls", "name": "HLS 备用", "urls": [self._abs_video(a.get("video_hls"), "hls")]})
@@ -975,11 +975,8 @@ class Spider(BaseSpider):
     def _brand_block(self):
         lines = [
             "",
-            "导演：",
-            "当前主站：" + (self._host or self.siteUrl),
-            "━" * 28,
-            "━" * 7,
-        ]
+                       "当前主站：" + (self._host or self.siteUrl),
+                ]
         return "\n".join(lines)
 
     # ============ accumulated feeds (ported from JS) ============
