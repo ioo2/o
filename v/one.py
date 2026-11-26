@@ -974,8 +974,7 @@ class Spider(BaseSpider):
 
     def _brand_block(self):
         lines = [
-            "",
-                       "当前主站：" + (self._host or self.siteUrl),
+          
                 ]
         return "\n".join(lines)
 
