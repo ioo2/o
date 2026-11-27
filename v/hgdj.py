@@ -1299,7 +1299,7 @@ SITE = "https://hongguoduanju.com"
 EPISODE_PREFIX = "hg-episode-v1:"
 # 五档清晰度（显示名, 接口 definition 档位），按用户要求从高到低排列。
 # 选集 id 编码为 "第N集$hg-episode-v1:<vid>@<档位>"，播放时按档位就近降级。
-QUALITY_TIERS = (("超清", "恒轩"), ("高清", " "), ("标准", "  "), ("流畅", "   "), ("极速", "    "))
+QUALITY_TIERS = (("超清", "恒轩"), ("高清", "750"), ("标准", "540"), ("流畅", "480"), ("极速", "360"))
 # 取流端点(实测 2026-10-13, 游客设备/无 cookie 无 token 即可用):
 #   POST /novel/player/multi_video_model/player/v1  body={"video_id":"<vid>",
 #        "biz_param":{"need_all_video_definition":true}}
